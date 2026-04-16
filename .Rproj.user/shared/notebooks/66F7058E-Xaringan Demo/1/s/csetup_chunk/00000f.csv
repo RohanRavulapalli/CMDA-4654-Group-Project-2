@@ -1,0 +1,4 @@
+"0","knitr::opts_chunk$set(echo = TRUE)"
+"0","remotes::install_github('yihui/xaringan')"
+"2","Error in loadNamespace(x) : there is no package called ‘remotes’
+"
