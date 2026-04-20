@@ -1,6 +1,6 @@
 ---
-title: "CMDA-4654  \n Homework Template"
-subtitle: "Homework XX"
+title: "CMDA-4654  \n Project 2"
+subtitle: "Project 2"
 author: "Your name here"
 date: "Today's Date"
 output:
@@ -85,7 +85,16 @@ knitr::opts_chunk$set(echo = TRUE,
 Example Chunk Below
 
 ```{r}
-plot(cars)
+myprobit = function(x, y, max_iter, tolerance){
+  n = nrow(x)
+  var_ct = ncol(x)
+  bhat = zeros(var_ct)
+  i = 0
+  for(i in range(max_iter)){
+    z = x * bhat
+    xhat = qnorm(z)
+  }
+}
 ```
 
 
