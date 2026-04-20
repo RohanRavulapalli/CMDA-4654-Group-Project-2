@@ -1,7 +1,7 @@
 ---
 title: "CMDA-4654  \n Project 2"
 subtitle: "Project 2"
-author: "Your name here"
+author: "Hipski, "
 date: "Today's Date"
 output:
   pdf_document:
@@ -90,9 +90,23 @@ myprobit = function(x, y, max_iter, tolerance){
   var_ct = ncol(x)
   bhat = zeros(var_ct)
   i = 0
+  diff = Inf
   for(i in range(max_iter)){
-    z = x * bhat
-    xhat = qnorm(z)
+    if (diff > tolerance){
+      
+    
+      pred = x * bhat
+      qhat = qnorm(pred)
+      phat = pnorm(pred)
+      
+      weight = (qhat) / (phat * (1 - qhat))
+      residual = y - weight
+      g = t(x) %*% (weight * residuals)
+      
+      # Expected Hessian
+      
+      
+    }
   }
 }
 ```
