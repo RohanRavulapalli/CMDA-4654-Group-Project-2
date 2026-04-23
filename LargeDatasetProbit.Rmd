@@ -1,0 +1,129 @@
+---
+title: "4654LargeDataset"
+author: "Arnav Gupta"
+date: "2026-04-23"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# -------------------------------
+# 1. LOAD DATA
+# -------------------------------
+
+# Load dataset
+df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+
+
+# -------------------------------
+# 2. KEEP ONLY RELEVANT VARIABLES
+# -------------------------------
+
+vars <- c("VCF0702",  # turnout
+          "VCF0101",  # age
+          "VCF0110",  # education
+          "VCF0114",  # income
+          "VCF0301",  # party ID
+          "VCF0310",  # political interest
+          "VCF0009z") # weights
+
+df_clean <- df[, vars]
+
+
+# -------------------------------
+# 3. CLEAN DATA
+# -------------------------------
+
+# Replace ANES missing values (negative numbers) with NA
+df_clean[df_clean < 0] <- NA
+
+
+# -------------------------------
+# 4. RECODE VARIABLES (BASED ON CODEBOOK)
+# -------------------------------
+
+# Dependent Variable: Turnout (1 = voted, 0 = did not vote)
+df_clean$vote <- ifelse(df_clean$VCF0702 == 2, 1,
+                  ifelse(df_clean$VCF0702 == 1, 0, NA))
+
+# Age
+df_clean$age <- as.numeric(df_clean$VCF0101)
+
+# Education (baseline = highest education)
+df_clean$education <- factor(df_clean$VCF0110,
+                            levels = c(4,3,2,1),
+                            labels = c("CollegePlus", "SomeCollege", "HighSchool", "LessHS"))
+
+# Income (higher = richer)
+df_clean$income <- as.numeric(df_clean$VCF0114)
+
+# Party ID (baseline = Independent)
+df_clean$party_id <- factor(df_clean$VCF0301,
+                           levels = c(4,3,5,2,6,1,7),
+                           labels = c("Independent",
+                                      "IndLeanDem",
+                                      "IndLeanRep",
+                                      "WeakDem",
+                                      "WeakRep",
+                                      "StrongDem",
+                                      "StrongRep"))
+
+# Political Interest (higher = more interested)
+df_clean$interest <- as.numeric(df_clean$VCF0310)
+
+# Keep weights
+df_clean$weight <- df_clean$VCF0009z
+
+
+# Drop missing values AFTER recoding
+df_clean <- na.omit(df_clean)
+
+
+# -------------------------------
+# 5. PEARSON CORRELATIONS
+# -------------------------------
+
+#ivs <- c("age", "income", "interest")
+
+#for (var in ivs) {
+#  cat("\n--------------------------------------\n")
+#  cat("Correlation between vote and", var, ":\n")
+#  print(cor.test(df_clean$vote, df_clean[[var]], method = "pearson"))
+#}
+
+
+# -------------------------------
+# 6. PROBIT REGRESSION (MODEL 1)
+# -------------------------------
+
+model1 <- glm(vote ~ age + education + income + party_id + interest,
+              data = df_clean,
+              weights = weight,
+              family = binomial(link = "probit"))
+
+summary(model1)
+
+
+# -------------------------------
+# 7. MARGINAL EFFECTS
+# -------------------------------
+
+# Install if needed
+if (!require(margins)) install.packages("margins")
+
+library(margins)
+
+mfx <- margins(model1)
+summary(mfx)
+```
+
+```{r}
+write.csv(df_clean, 
+          "anes_cleaned.csv", 
+          row.names = FALSE)
+```
