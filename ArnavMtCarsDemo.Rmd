@@ -1,0 +1,64 @@
+---
+title: "adfadf"
+author: "Arnav Gupta"
+date: "2026-04-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load dataset (already built-in)
+data(mtcars)
+
+# Run probit regression
+model <- glm(am ~ mpg, 
+             data = mtcars, 
+             family = binomial(link = "probit"))
+
+# View results
+summary(model)
+margins(model)
+```
+
+```{r}
+X <- model.matrix(am ~ mpg, data = mtcars)
+y <- mtcars$am
+
+# Initialize
+beta <- c(0, 0)
+
+max_iter <- 32
+
+for (i in 1:max_iter) {
+  
+  # Step 1
+  eta <- X %*% beta
+  
+  # Step 2
+  phat <- pnorm(eta)
+  qhat <- dnorm(eta)
+  
+  # Step 3
+  ratio <- qhat / (phat * (1 - phat))
+  score <- (y - phat) * ratio
+  g <- t(X) %*% score
+  
+  # Step 4
+  w <- (qhat^2) / (phat * (1 - phat))
+  H <- -t(X) %*% (X * as.vector(w))
+  
+  # Step 5 update
+  beta <- beta - solve(H, g)
+  
+  # 🔥 PRINT ONLY COEFFICIENTS
+  cat("Iteration", i, ":\n")
+  cat("Beta0 =", beta[1], " Beta1 =", beta[2], "\n\n")
+}
+```
+
+```{r}
+coef(glm(am ~ mpg, data = mtcars, family = binomial(link="probit")))
+```
