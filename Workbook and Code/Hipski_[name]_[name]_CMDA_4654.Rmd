@@ -85,27 +85,36 @@ knitr::opts_chunk$set(echo = TRUE,
 Example Chunk Below
 
 ```{r}
-myprobit = function(x, y, max_iter, tolerance){
-  n = nrow(x)
-  var_ct = ncol(x)
-  bhat = zeros(var_ct)
-  i = 0
-  diff = Inf
-  for(i in range(max_iter)){
-    if (diff > tolerance){
-      
+myprobit = function(X, y, max_iter, tolerance){
+
+  m = ncol(X)
+  beta <- rep(0, m)
+  
+  for (i in 1:max_iter) {
     
-      pred = x * bhat
-      qhat = qnorm(pred)
-      phat = pnorm(pred)
-      
-      weight = (qhat) / (phat * (1 - qhat))
-      residual = y - weight
-      g = t(x) %*% (weight * residuals)
-      
-      # Expected Hessian
-      
-      
+    eta <- X %*% beta
+    
+    phat <- pnorm(eta)
+    qhat <- dnorm(eta)
+    
+    ratio <- qhat / (phat * (1 - phat))
+    score <- (y - phat) * ratio
+    g <- t(X) %*% score
+    
+    w <- (qhat^2) / (phat * (1 - phat))
+    H <- -t(X) %*% (X * as.vector(w))
+    
+    copy_beta = beta
+    beta <- beta - solve(H, g)
+    
+    cat("Iteration", i, ":\n")
+    j=1
+    for (b in beta){
+      cat("Beta", j, " = ", beta[j], "\n")
+      j=j+1
+    }
+    if ((sum(beta - copy_beta)^2) < tolerance) {
+      break
     }
   }
 }
@@ -114,6 +123,10 @@ myprobit = function(x, y, max_iter, tolerance){
 
 ```{r}
 summary(mtcars)
+X <- model.matrix(am ~ mpg, data = mtcars)
+y <- mtcars$am
+myprobit(X,y,32, 0.00009)
+
 ```
 
 
