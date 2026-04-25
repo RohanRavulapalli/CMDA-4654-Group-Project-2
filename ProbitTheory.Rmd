@@ -260,10 +260,11 @@ while (!converged) {
 ```
 
 ```{r}
-coef(glm(am ~ mpg, data = mtcars, family = binomial(link="probit")))
+modell <- coef(glm(am ~ mpg, data = mtcars, family = binomial(link="probit")))
+modell
 ```
 
-R's in-built function confirms the results from our implementation to four decimal places.
+R's in-built function confirms the results from our implementation to four decimal places. The intercept (−3.91) represents the baseline latent tendency for a car to be manual when MPG is zero; it is strongly negative, meaning the model starts from a situation where automatic transmission is much more likely before considering MPG. The MPG coefficient (0.182) means that each additional unit of MPG increases the latent “manual likelihood” score, shifting the probability toward a manual transmission. Together, they imply that higher-MPG cars are increasingly likely to be manual, but the actual probability depends on how this latent score is transformed through the probit model’s normal CDF.
 
 ```{r}
 model <- glm(am ~ mpg, 
@@ -287,12 +288,134 @@ There is a positive relationship between MPG and the probability that a car has 
 
 The probability that a car has a manual transmission increases smoothly with MPG, with the most rapid increase occurring around 20 MPG, where the likelihood transitions from mostly automatic to mostly manual.
 
+margins() takes the probit coefficients and converts them into marginal effects on probability, which are actually interpretable.
+
+```{r}
+library(margins)
+mfx <- margins(model)
+summary(mfx)
+```
+
+To answer our research question, what is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission, for each 1 MPG increase, the probability that a car is manual increases by about 4.7 percentage points (on average).
+
 ### Extension
 
 When extending the probit model to include multiple predictors, the structure of the model remains unchanged, but the linear predictor becomes a combination of multiple variables:
 
 $$
-P(y_i = 1) = \Phi(\beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i})
+P(y=1) = \Phi(\beta_0 + \beta_1 \cdot \text{mpg} + \beta_2 \cdot \text{wt})
 $$
 
-Each coefficient represents a partial effect, meaning that the effect of one variable is measured while holding the other variables constant. For example, $\beta_1$ captures the effect of MPG on the probability of a manual transmission, controlling for weight.
+Each coefficient represents a partial effect, meaning that the effect of one variable is measured while holding the other variables constant.
+
+If we add weight to the model, the MPG coefficient captures its effect on transmission probability while holding weight constant—meaning it reflects MPG’s independent contribution rather than differences driven by weight.
+
+### Government/Politics Dataset
+
+Like we mentioned earlier in the presentation, probit regression is excellent for modeling situations where the result is binary. One good example is voting, where there are two possible outcomes: voted or not voted.
+
+We considered the research question, to what extent do socioeconomic resources, specifically age, education, and income, predict voter turnout in American national elections?
+
+We used a dataset provided by the American National Election Studies, detailing whether individuals voted or not in the 2024 election. The dataset had over 44 variables it considered, such as occupation and religion.
+
+Translating information from the codebook, we considered the variables below.
+
+![The variable, VCF0009z, considers if a survey accidentally talks to too many men and not enough women, the women’s answers are given a higher **weight** (they count for more than one person) and the men’s answers are given a lower **weight** (they count for less than one person). This balances the data so the final results look like a perfect "mini-version" of the real world rather than just a reflection of who happened to answer the phone.](images/clipboard-593014418.png)
+
+We cleaned the dataset to only use the variables above
+
+```{r}
+df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+
+
+vars <- c("VCF0702",  # turnout
+          "VCF0101",  # age
+          "VCF0110",  # education
+          "VCF0114",  # income
+          "VCF0301",  # party ID
+          "VCF0310",  # political interest
+          "VCF0009z") # weights
+
+df_clean <- df[, vars]
+
+df_clean[df_clean < 0] <- NA
+
+# Dependent Variable: Turnout (1 = voted, 0 = did not vote)
+df_clean$vote <- ifelse(df_clean$VCF0702 == 2, 1,
+                  ifelse(df_clean$VCF0702 == 1, 0, NA))
+
+df_clean$age <- as.numeric(df_clean$VCF0101)
+
+df_clean$education <- factor(df_clean$VCF0110,
+                            levels = c(4,3,2,1),
+                            labels = c("CollegePlus", "SomeCollege", "HighSchool", "LessHS"))
+
+df_clean$income <- as.numeric(df_clean$VCF0114)
+
+df_clean$party_id <- factor(df_clean$VCF0301,
+                           levels = c(4,3,5,2,6,1,7),
+                           labels = c("Independent",
+                                      "IndLeanDem",
+                                      "IndLeanRep",
+                                      "WeakDem",
+                                      "WeakRep",
+                                      "StrongDem",
+                                      "StrongRep"))
+
+df_clean$interest <- as.numeric(df_clean$VCF0310)
+
+df_clean$weight <- df_clean$VCF0009z
+
+
+df_clean <- na.omit(df_clean)
+```
+
+#### Exploratory Data Analysis
+
+```{r}
+chisq.test(table(df_clean$vote, df_clean$education))
+
+chisq.test(table(df_clean$vote, df_clean$party_id))
+```
+
+Both chi-squared tests show that turnout is **strongly related** to education and party identification. For education, the test statistic is very large $X^2 = 3910.4$ with a p-value effectively equal to zero, meaning we can confidently reject the idea that voting behavior is independent of education level. Similarly, for party identification, the chi-squared test $X^2 = 3694.5$ also produces a near-zero p-value, indicating a strong relationship between party ID and turnout.
+
+In simple terms, this means that people with different education levels and different political affiliations vote at different rates. Because these variables are clearly associated with turnout, they are important predictors and should be included in the model.
+
+**Age** is included because older individuals are generally more likely to vote.
+
+**Income** is included because individuals with higher socioeconomic status often have more resources, time, and access to information, all of which increase the likelihood of voting.
+
+**Political interest** is a direct measure of engagement with politics, and individuals who report higher levels of interest are much more likely to participate in elections.
+
+```{r}
+model1 <- glm(vote ~ age + education + income + party_id + interest,
+              data = df_clean,
+              weights = weight,
+              family = binomial(link = "probit"))
+
+summary(model1)
+```
+
+```{r}
+if (!require(margins)) install.packages("margins")
+
+library(margins)
+
+mfx <- margins(model1)
+summary(mfx)
+```
+
+The results from the probit model show that socioeconomic resources—age, education, and income—are all **strong and statistically significant predictors of voter turnout** in American national elections.
+
+First, **age** has a positive effect on turnout. The average marginal effect (AME) of 0.0039 means that each additional year of age increases the probability of voting by about **0.4 percentage points**, holding other factors constant. This suggests that older individuals are more likely to vote.
+
+Second, **education** has a large and meaningful impact. Compared to individuals with a college degree (the baseline group), those with lower levels of education are significantly less likely to vote. For example, having only a high school education decreases the probability of voting by about **15.5 percentage points**, while having less than a high school education decreases it by about **24.5 percentage points**. This indicates that education is one of the strongest predictors of turnout.
+
+Third, **income** also positively affects turnout. The AME of 0.0381 shows that moving up one income category increases the probability of voting by about **3.8 percentage points**, suggesting that individuals with greater financial resources are more likely to participate in elections.
+
+**Party identification and political interest** also have strong and significant effects on voter turnout. Compared to independents, individuals who identify with a political party, especially strong partisans, are substantially more likely to vote. For example, strong Democrats and strong Republicans are about **20–22 percentage points more likely** to vote than independents. This suggests that partisan attachment increases motivation to participate in elections.
+
+Similarly, **political interest** has one of the largest effects in the model. The average marginal effect of 0.1076 indicates that moving up one level of interest increases the probability of voting by about **10.8 percentage points**. This means that individuals who are more engaged and attentive to politics are much more likely to turn out.
+
+Overall, while socioeconomic resources are important, these results show that political engagement and partisan identity are equally powerful predictors of turnout.
