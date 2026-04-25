@@ -325,7 +325,7 @@ Translating information from the codebook, we considered the variables below.
 We cleaned the dataset to only use the variables above
 
 ```{r}
-df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+df <- read.csv("https://drive.google.com/uc?export=download&id=12eUO5FT7h3KXgxrlCy3UwfnxdOWTcJvT", stringsAsFactors = FALSE)
 
 
 vars <- c("VCF0702",  # turnout

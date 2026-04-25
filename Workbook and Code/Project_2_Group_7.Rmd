@@ -1,13 +1,15 @@
 ---
 title: "Probit Regression Function"
-subtitle: "Applications in Government & Politics"
-author: "Elliot Hipski"
+author: "Elliot Hipski, Rohan, Brandon, Arnav"
 date: "April 2026"
 output:
+  beamer_presentation: default
   ioslides_presentation:
     widescreen: true
     smaller: true
+subtitle: Applications in Government & Politics
 ---
+
 ## Table of Contents
 
 1. Prerequisite Knowledge
@@ -19,11 +21,11 @@ output:
 
 # Topic 1 | Prerequisite Knowledge
 
-## Bernoulli Distribution 
-Used for modeling binary outcomes. applies $\text{Var}(X) = E[X^2] - (E[X])^2 = p - p^2 = p(1 - p)$ 
+## Bernoulli Distribution Variance
+Used for modeling binary outcomes. The variance is defined as $\text{Var}(X) = E[X^2] - (E[X])^2 = p - p^2 = p(1 - p)$ 
 
-## Logistic Regression
-Probit is used instead of this model 
+## General Linear Model
+A general Linear Model is a model that applies a linear function to a dataset, with the general rules of 
 
 ## Gradient
 The vector of partial derivatives used to navigate the likelihood surface and find the maximum likelihood estimate.
@@ -50,7 +52,7 @@ Used in Fisher Scoring to simplify calculations; it is defined as being Positive
 
 
 
-# Topic 4 | Implementation
+# Topic 4 | Implementation {.shrink}
 
 ```{r echo=TRUE}
 myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
@@ -93,49 +95,562 @@ myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
 
 
 ```{r echo=TRUE}
-summary(mtcars)
 X <- model.matrix(am ~ mpg, data = mtcars)
 y <- mtcars$am
-myprobit(X,y,32, 0.00009)
+myprobit(X,y,32, 0.00009, FALSE)
 
 ```
 
-## Solving the System
+# Solving the System
 
-### Optimization Methods
+## Optimization Methods
 
-### Testing
+## Testing
 
 # Topic 5 | Comparison to Other Models
 
-## Probit vs. Logistic Regression
+## Motivation
 
-- **Similarities**:
-  - Both are GLMs for predicting binary outcomes.
-  - Both apply gradient functions and use Likelihood Ratio Tests.
-  - Both are widely used in Econometrics and Political Science.
-- **Differences**:
-  - **Logit**: Uses the logit function ($log(p/1-p)$) as the link.
-  - **Probit**: Uses the inverse normal distribution ($\Phi^{-1}$) as the link. Economists often prefer Probit.
+Several methods exist for modeling binary outcomes. This section compares probit regression against three alternatives:
 
-## Linear & Lasso Regression
+1. **Linear Regression (OLS)** — the standard baseline for continuous outcomes
+2. **Logistic Regression** — the most widely used GLM for binary data
+3. **Lasso Regression** — a penalized method that performs automatic variable selection
 
-- **Linear Regression**:
-  - *Difference*: Based on the information matrix $X^T X$ and design matrix $X$ multiplied by $y$; results interpreted via $R^2$ and ANOVA.
-- **Lasso (LAR)**:
-  - *Difference*: Focuses on variable selection and shrinkage; attempts to perform Least Angle Regression to find the linear combination $\beta$.
+The goal is to understand the practical and theoretical differences between these approaches, and to identify when probit regression is the appropriate choice.
+
+---
+
+## Data: Donner Party Survival
+
+We use the **Donner Party survival dataset** from the `Sleuth3` package. The binary outcome is survival status (1 = Survived, 0 = Died), with Age and Sex as predictors.
+
+```{r comp-setup, echo=TRUE, message=FALSE, warning=FALSE}
+library(Sleuth3); library(dplyr); library(ggplot2)
+library(glmnet);  library(caret)
+
+set.seed(42)
+
+# recode response and sex
+donner <- case2001 %>%
+  mutate(
+    mystatus = if_else(Status == "Survived", 1, 0),
+    male     = if_else(Sex == "Male", 1, 0)
+  )
+
+head(donner[, c("Age", "Sex", "Status", "mystatus")], 4)
+```
+
+---
+
+## Linear Regression on a Binary Response
+
+OLS fits:
+
+$$\hat{E}(Y \mid \mathbf{X}) = \hat{\beta}_0 + \hat{\beta}_1 X_1 + \cdots + \hat{\beta}_p X_p$$
+
+When $Y \in \{0, 1\}$, this is the **Linear Probability Model (LPM)**. Since $\mathbf{X} \in \mathbb{R}$, fitted values are not constrained to $[0, 1]$, which means the model can produce predicted probabilities below 0 or above 1. This violates the basic requirement for a valid probability model and is the primary motivation for using a link function in GLMs.
+
+---
+
+## OLS on a Binary Response — Code
+
+```{r lpm-fit-code, echo=TRUE, eval=FALSE}
+# fit OLS
+lpm_fit <- lm(mystatus ~ Age + male, data = donner)
+
+donner <- donner %>%
+  mutate(pi_lpm = predict(lpm_fit))
+
+ggplot(donner, aes(x = Age, y = mystatus)) +
+  geom_point(aes(color = Status), size = 2, alpha = 0.7) +
+  geom_line(aes(y = pi_lpm, group = male,
+                linetype = factor(male, labels = c("Female","Male"))),
+            color = "darkred", linewidth = 1) +
+  geom_hline(yintercept = c(0, 1), linetype = "dotted", color = "gray40") +
+  labs(title = "Linear Probability Model: Predictions Can Leave [0, 1]",
+       y = "P(Survived)", x = "Age", linetype = "Sex",
+       caption = "Dotted lines mark the valid [0,1] probability bounds") +
+  theme_bw()
+```
+
+---
+
+## OLS on a Binary Response — Plot
+
+```{r lpm-fit-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+lpm_fit <- lm(mystatus ~ Age + male, data = donner)
+donner  <- donner %>% mutate(pi_lpm = predict(lpm_fit))
+
+ggplot(donner, aes(x = Age, y = mystatus)) +
+  geom_point(aes(color = Status), size = 2, alpha = 0.7) +
+  geom_line(aes(y = pi_lpm, group = male,
+                linetype = factor(male, labels = c("Female","Male"))),
+            color = "darkred", linewidth = 1) +
+  geom_hline(yintercept = c(0, 1), linetype = "dotted", color = "gray40") +
+  labs(title = "Linear Probability Model: Predictions Can Leave [0, 1]",
+       y = "P(Survived)", x = "Age", linetype = "Sex",
+       caption = "Dotted lines mark the valid [0,1] probability bounds") +
+  theme_bw()
+```
+
+---
+
+## OLS Predictions Outside [0, 1]
+
+```{r lpm-damage, echo=TRUE}
+lpm_preds <- predict(lpm_fit)
+
+cat("Range of OLS predictions:", round(range(lpm_preds), 4), "\n")
+cat("Predictions below 0:     ", sum(lpm_preds < 0), "\n")
+cat("Predictions above 1:     ", sum(lpm_preds > 1), "\n")
+
+# misclassification at 0.5 threshold
+lpm_class <- ifelse(lpm_preds > 0.5, 1, 0)
+cat("OLS misclassification rate:",
+    round(mean(lpm_class != donner$mystatus), 4), "\n")
+```
+
+Even on this small dataset, OLS produces invalid probabilities. Linear regression is not appropriate for binary outcomes.
+
+---
+
+## Logistic Regression
+
+Logistic regression uses the **logit link**:
+
+$$\eta = \text{logit}(\pi) = \ln\left[\frac{\pi}{1-\pi}\right] = \mathbf{x}^T\boldsymbol{\beta} \quad \Rightarrow \quad \hat{\pi} = \frac{e^\eta}{1 + e^\eta}$$
+
+This assumes errors follow a logistic distribution.
+
+Probit regression uses the **inverse standard normal CDF**:
+
+$$\eta = \Phi^{-1}(\pi) = \mathbf{x}^T\boldsymbol{\beta} \quad \Rightarrow \quad \hat{\pi} = \Phi(\mathbf{x}^T\hat{\boldsymbol{\beta}})$$
+
+This assumes errors follow a standard normal distribution. Both are valid GLMs for binary outcomes — they differ only in their distributional assumption.
+
+---
+
+## Link Functions — Code
+
+```{r link-viz-code, echo=TRUE, eval=FALSE}
+eta_seq <- seq(-4, 4, length.out = 300)
+
+df_links <- data.frame(
+  eta    = rep(eta_seq, 2),
+  pi     = c(plogis(eta_seq),  # inverse logit
+             pnorm(eta_seq)),  # inverse probit (std normal CDF)
+  Method = rep(c("Logistic (logit link)", "Probit (normal CDF)"), each = 300)
+)
+
+ggplot(df_links, aes(x = eta, y = pi, color = Method, linetype = Method)) +
+  geom_line(linewidth = 1.3) +
+  labs(title = "Inverse Link Functions: Logistic vs. Probit",
+       x = expression(eta ~ "(Linear Predictor)"),
+       y = expression(hat(pi) ~ "(Predicted Probability)")) +
+  scale_color_manual(values = c("steelblue", "firebrick")) +
+  theme_bw() + theme(legend.position = "bottom")
+```
+
+---
+
+## Link Functions — Plot
+
+```{r link-viz-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+eta_seq <- seq(-4, 4, length.out = 300)
+df_links <- data.frame(
+  eta    = rep(eta_seq, 2),
+  pi     = c(plogis(eta_seq), pnorm(eta_seq)),
+  Method = rep(c("Logistic (logit link)", "Probit (normal CDF)"), each = 300)
+)
+ggplot(df_links, aes(x = eta, y = pi, color = Method, linetype = Method)) +
+  geom_line(linewidth = 1.3) +
+  labs(title = "Inverse Link Functions: Logistic vs. Probit",
+       x = expression(eta ~ "(Linear Predictor)"),
+       y = expression(hat(pi) ~ "(Predicted Probability)")) +
+  scale_color_manual(values = c("steelblue", "firebrick")) +
+  theme_bw() + theme(legend.position = "bottom")
+```
+
+The probit curve has lighter tails — it approaches 0 and 1 faster than the logistic curve.
+
+---
+
+## Fitting Both Models — Code
+
+```{r fit-both-code, echo=TRUE, eval=FALSE}
+# fit logistic and probit
+logit_fit  <- glm(mystatus ~ Age + male, data = donner,
+                  family = binomial(link = "logit"))
+
+probit_fit <- glm(mystatus ~ Age + male, data = donner,
+                  family = binomial(link = "probit"))
+
+# compare coefficients
+round(cbind(
+  "OLS Coef"    = coef(lpm_fit),
+  "Logit Coef"  = coef(logit_fit),
+  "Probit Coef" = coef(probit_fit)
+), 4)
+```
+
+---
+
+## Fitting Both Models — Output
+
+```{r fit-both-output, echo=FALSE, eval=TRUE}
+logit_fit  <- glm(mystatus ~ Age + male, data = donner,
+                  family = binomial(link = "logit"))
+probit_fit <- glm(mystatus ~ Age + male, data = donner,
+                  family = binomial(link = "probit"))
+
+round(cbind(
+  "OLS Coef"    = coef(lpm_fit),
+  "Logit Coef"  = coef(logit_fit),
+  "Probit Coef" = coef(probit_fit)
+), 4)
+```
+
+The probit coefficients are smaller by a factor of roughly 1.6 to 1.8. The logistic distribution has variance $\pi^2/3 \approx 3.29$, while the standard normal has variance 1. The scales differ, but the substantive conclusions are the same.
+
+---
+
+## Predicted Probabilities — Code
+
+```{r pred-compare-code, echo=TRUE, eval=FALSE}
+donner <- donner %>%
+  mutate(
+    pi_logit  = predict(logit_fit,  type = "response"),
+    pi_probit = predict(probit_fit, type = "response")
+  )
+
+ggplot(donner, aes(x = pi_logit, y = pi_probit, color = Status)) +
+  geom_point(size = 2.5, alpha = 0.8) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
+  labs(title = "Logistic vs. Probit: Predicted Probabilities (Donner Data)",
+       x = "Logistic Predicted Probability",
+       y = "Probit Predicted Probability") +
+  theme_bw()
+```
+
+---
+
+## Predicted Probabilities — Plot
+
+```{r pred-compare-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+donner <- donner %>%
+  mutate(
+    pi_logit  = predict(logit_fit,  type = "response"),
+    pi_probit = predict(probit_fit, type = "response")
+  )
+
+ggplot(donner, aes(x = pi_logit, y = pi_probit, color = Status)) +
+  geom_point(size = 2.5, alpha = 0.8) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
+  labs(title = "Logistic vs. Probit: Predicted Probabilities (Donner Data)",
+       x = "Logistic Predicted Probability",
+       y = "Probit Predicted Probability") +
+  theme_bw()
+```
+
+The predicted probabilities from both models are nearly identical, confirming that the choice of link function has minimal practical impact on fitted values.
+
+---
+
+## Model Fit Metrics
+
+```{r fit-metrics, echo=TRUE}
+cat(sprintf("%-28s %8s %8s\n", "Metric", "Logistic", "Probit"))
+cat(sprintf("%-28s %8.3f %8.3f\n", "AIC",
+            AIC(logit_fit), AIC(probit_fit)))
+cat(sprintf("%-28s %8.3f %8.3f\n", "Residual Deviance",
+            deviance(logit_fit), deviance(probit_fit)))
+cat(sprintf("%-28s %8.3f %8.3f\n", "Null Deviance",
+            logit_fit$null.deviance, probit_fit$null.deviance))
+
+log_err  <- mean((donner$pi_logit  > 0.5) != donner$mystatus)
+prob_err <- mean((donner$pi_probit > 0.5) != donner$mystatus)
+cat(sprintf("%-28s %8.4f %8.4f\n", "Misclassification Rate",
+            log_err, prob_err))
+```
+
+The two models produce nearly identical fit across every metric. The choice between logistic and probit is rarely driven by model performance.
+
+---
+
+## When to Prefer Probit
+
+**1. Latent variable framework.**
+Assume an unobserved variable $Y^* = \mathbf{x}^T\boldsymbol{\beta} + \varepsilon$ where $\varepsilon \sim N(0,1)$. We observe $Y = 1$ if $Y^* > 0$. This is the probit model exactly — a standard framework in economics and political science.
+
+**2. Tail behavior.**
+The normal CDF approaches 0 and 1 more rapidly than the logistic distribution. Probit is preferable when probabilities near the extremes are of scientific interest.
+
+**3. Field convention.**
+Probit is the standard choice in economics, political science, and related disciplines. For government and political science applications, probit is the conventional model.
+
+**4. Marginal effects.**
+Probit coefficients do not have an odds-ratio interpretation, but average marginal effects provide a clear and directly interpretable quantity.
+
+---
+
+## Marginal Effects
+
+Probit coefficients have no direct probability interpretation on their own. The standard approach is to compute **Average Marginal Effects (AME)**:
+
+$$\text{AME}_j = \frac{1}{n}\sum_{i=1}^{n} \phi(\mathbf{x}_i^T\hat{\boldsymbol{\beta}}) \cdot \hat{\beta}_j$$
+
+where $\phi(\cdot)$ is the standard normal PDF.
+
+```{r marginal-effects, echo=TRUE, message=FALSE, warning=FALSE}
+library(margins)
+
+# compute AMEs
+ame <- margins(probit_fit)
+summary(ame)[, c("factor", "AME", "SE", "z", "p")]
+```
+
+This gives the change in predicted probability for a one-unit change in each predictor, averaged across all observations.
+
+---
+
+## Lasso Regression
+
+The logistic or probit objective function can be **penalized** to perform variable selection:
+
+$$\hat{\boldsymbol{\beta}} = \operatorname{argmin}_{\boldsymbol{\beta}} \left\{ -\frac{2}{n}\ell(\boldsymbol{\beta}) + \lambda \sum_{j=1}^{p} |\beta_j| \right\}$$
+
+The $\ell_1$ penalty shrinks small coefficients toward zero and eliminates irrelevant predictors entirely when $\lambda$ is large enough. This is particularly useful in high-dimensional settings such as political science data with many demographic and behavioral predictors.
+
+---
+
+## Lasso: Fitting the Model — Code
+
+```{r lasso-fit-code, echo=TRUE, eval=FALSE}
+# glmnet needs a matrix, not a formula
+X_mat <- model.matrix(mystatus ~ Age + male, data = donner)[, -1]
+y_vec <- donner$mystatus
+
+# fit lasso over lambda path
+lasso_path <- glmnet(X_mat, y_vec, family = "binomial", alpha = 1)
+
+plot(lasso_path, xvar = "lambda", label = TRUE,
+     main = "Lasso Coefficient Path (Penalized Logistic, Donner Data)")
+```
+
+---
+
+## Lasso: Coefficient Path
+
+```{r lasso-fit-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+X_mat <- model.matrix(mystatus ~ Age + male, data = donner)[, -1]
+y_vec <- donner$mystatus
+lasso_path <- glmnet(X_mat, y_vec, family = "binomial", alpha = 1)
+plot(lasso_path, xvar = "lambda", label = TRUE,
+     main = "Lasso Coefficient Path (Penalized Logistic, Donner Data)")
+```
+
+---
+
+## Lambda Selection via Cross-Validation — Code
+
+```{r lasso-cv-code, echo=TRUE, eval=FALSE}
+set.seed(42)
+cv_lasso <- cv.glmnet(X_mat, y_vec,
+                      family       = "binomial",
+                      alpha        = 1,
+                      nfolds       = 10,
+                      type.measure = "class")
+
+plot(cv_lasso, main = "10-Fold CV: Selecting Optimal Lambda")
+
+cat("Lambda (min CV error): ", round(cv_lasso$lambda.min, 5), "\n")
+cat("Lambda (1 SE rule):    ", round(cv_lasso$lambda.1se, 5), "\n")
+```
+
+---
+
+## Lambda Selection via Cross-Validation — Plot
+
+```{r lasso-cv-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+set.seed(42)
+cv_lasso <- cv.glmnet(X_mat, y_vec,
+                      family       = "binomial",
+                      alpha        = 1,
+                      nfolds       = 10,
+                      type.measure = "class")
+plot(cv_lasso, main = "10-Fold CV: Selecting Optimal Lambda")
+cat("Lambda (min CV error): ", round(cv_lasso$lambda.min, 5), "\n")
+cat("Lambda (1 SE rule):    ", round(cv_lasso$lambda.1se, 5), "\n")
+```
+
+---
+
+## Lasso Final Coefficients
+
+```{r lasso-coefs, echo=TRUE}
+cat("Lasso coefficients at lambda.min:\n")
+round(as.matrix(coef(cv_lasso, s = "lambda.min")), 5)
+
+cat("\nLasso coefficients at lambda.1se:\n")
+round(as.matrix(coef(cv_lasso, s = "lambda.1se")), 5)
+```
+
+A dot (.) indicates a coefficient shrunk exactly to zero — that predictor has been removed. In a high-dimensional political dataset, lasso becomes essential for producing a parsimonious model.
+
+---
+
+## All Four Methods — Code
+
+```{r full-compare-code, echo=TRUE, eval=FALSE}
+ggplot(donner, aes(x = Age)) +
+  geom_point(aes(y = mystatus, color = Status), alpha = 0.5, size = 1.5) +
+  geom_line(aes(y = pi_lpm, group = male), color = "gray30",
+            linewidth = 0.9, linetype = "dotdash") +
+  geom_smooth(aes(y = mystatus), method = "glm",
+              method.args = list(family = binomial(link = "logit")),
+              se = FALSE, color = "steelblue", linewidth = 1) +
+  geom_smooth(aes(y = mystatus), method = "glm",
+              method.args = list(family = binomial(link = "probit")),
+              se = FALSE, color = "firebrick", linewidth = 1, linetype = "dashed") +
+  labs(title = "Predicted Probabilities: All Four Methods (Donner Data)",
+       y = "P(Survived)", x = "Age",
+       caption = "Blue = Logistic  |  Red = Probit  |  Gray = OLS  |  Lasso approx. Logistic") +
+  theme_bw()
+```
+
+---
+
+## All Four Methods — Plot
+
+```{r full-compare-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+ggplot(donner, aes(x = Age)) +
+  geom_point(aes(y = mystatus, color = Status), alpha = 0.5, size = 1.5) +
+  geom_line(aes(y = pi_lpm, group = male), color = "gray30",
+            linewidth = 0.9, linetype = "dotdash") +
+  geom_smooth(aes(y = mystatus), method = "glm",
+              method.args = list(family = binomial(link = "logit")),
+              se = FALSE, color = "steelblue", linewidth = 1) +
+  geom_smooth(aes(y = mystatus), method = "glm",
+              method.args = list(family = binomial(link = "probit")),
+              se = FALSE, color = "firebrick", linewidth = 1, linetype = "dashed") +
+  labs(title = "Predicted Probabilities: All Four Methods (Donner Data)",
+       y = "P(Survived)", x = "Age",
+       caption = "Blue = Logistic  |  Red = Probit  |  Gray = OLS  |  Lasso approx. Logistic") +
+  theme_bw()
+```
+
+---
+
+## Confusion Matrix Comparison — Code
+
+```{r confusion-code, echo=TRUE, eval=FALSE}
+threshold <- 0.5
+
+results <- donner %>%
+  mutate(
+    pred_lpm    = factor(ifelse(pi_lpm    > threshold, 1, 0)),
+    pred_logit  = factor(ifelse(pi_logit  > threshold, 1, 0)),
+    pred_probit = factor(ifelse(pi_probit > threshold, 1, 0)),
+    pred_lasso  = factor(ifelse(
+      predict(cv_lasso, newx = X_mat, s = "lambda.min",
+              type = "response")[, 1] > threshold, 1, 0)),
+    actual = factor(mystatus)
+  )
+
+acc <- function(pred, actual) round(mean(pred == actual), 4)
+
+cat(sprintf("%-20s %s\n", "Method",    "Accuracy"))
+cat(sprintf("%-20s %s\n", "OLS (LPM)", acc(results$pred_lpm,    results$actual)))
+cat(sprintf("%-20s %s\n", "Logistic",  acc(results$pred_logit,  results$actual)))
+cat(sprintf("%-20s %s\n", "Probit",    acc(results$pred_probit, results$actual)))
+cat(sprintf("%-20s %s\n", "Lasso",     acc(results$pred_lasso,  results$actual)))
+```
+
+---
+
+## Confusion Matrix Comparison — Output
+
+```{r confusion-output, echo=FALSE, eval=TRUE}
+threshold <- 0.5
+
+results <- donner %>%
+  mutate(
+    pred_lpm    = factor(ifelse(pi_lpm    > threshold, 1, 0)),
+    pred_logit  = factor(ifelse(pi_logit  > threshold, 1, 0)),
+    pred_probit = factor(ifelse(pi_probit > threshold, 1, 0)),
+    pred_lasso  = factor(ifelse(
+      predict(cv_lasso, newx = X_mat, s = "lambda.min",
+              type = "response")[, 1] > threshold, 1, 0)),
+    actual = factor(mystatus)
+  )
+
+acc <- function(pred, actual) round(mean(pred == actual), 4)
+
+cat(sprintf("%-20s %s\n", "Method",    "Accuracy"))
+cat(sprintf("%-20s %s\n", "OLS (LPM)", acc(results$pred_lpm,    results$actual)))
+cat(sprintf("%-20s %s\n", "Logistic",  acc(results$pred_logit,  results$actual)))
+cat(sprintf("%-20s %s\n", "Probit",    acc(results$pred_probit, results$actual)))
+cat(sprintf("%-20s %s\n", "Lasso",     acc(results$pred_lasso,  results$actual)))
+```
+
+---
+
+## Probit Confusion Matrix
+
+```{r probit-confmat, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+confusionMatrix(
+  data      = results$pred_probit,
+  reference = results$actual,
+  positive  = "1"
+)
+```
+
+---
+
+## Model Comparison Summary {.smaller}
+
+| Criterion | OLS (LPM) | Logistic | **Probit** | Lasso |
+|---|---|---|---|---|
+| Predictions in $[0,1]$? | No | Yes | Yes | Yes |
+| Link function | Identity | Logit | **$\Phi^{-1}$ (normal)** | Logit or Probit |
+| Error distribution | Normal | Logistic | **Normal** | Logistic |
+| Estimation method | OLS (closed form) | MLE (IRLS) | MLE (Fisher Scoring) | MLE + $\ell_1$ penalty |
+| Coefficient interpretation | $\Delta\hat{y}$ | Log-odds / Odds ratio | Marginal effects (AME) | Log-odds (shrunk) |
+| Variable selection? | No | No | No | **Yes** |
+| Tuning required? | No | No | No | Yes ($\lambda$) |
+| Preferred when... | Never | General / odds needed | Econ, politics, latent variable | Many predictors |
+| Inference (p-values, CIs)? | Yes | Yes | Yes | Not standard |
+
+---
+
+## Key Takeaways
+
+- **Linear regression (OLS)** is not appropriate for binary outcomes. Predicted values are not bounded to $[0,1]$ and the model is misspecified.
+
+- **Logistic and probit regression** produce nearly identical predicted probabilities and model fit. Coefficients differ in scale by approximately 1.6x due to differing error distributions, but substantive conclusions are the same.
+
+- **Probit is preferred** in economics and political science due to the latent variable framework and field convention. Coefficients are interpreted via average marginal effects.
+
+- **Logistic regression is preferred** when odds ratios are the natural effect measure.
+
+- **Lasso** extends either model with an $\ell_1$ penalty for automatic variable selection. Standard p-values and confidence intervals are not available after lasso selection.
+
+- For government and political science applications, probit regression is the standard and appropriate choice.
 
 # References
 
 ## Citations
-- Yanai, Y. [Logit and Probit](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
-- [Econometrics with R - Probit and Logit](https://www.econometrics-with-r.org/11.2-palr.html)
-- Wikipedia: Logistic Regression
-- Lucero: Lecture 16 (Probit Maximum Likelihood)
-- R Packages: `xaringan`, `rstudioaddins`
+
+**Comparison Section (Rohan)**
+
+- Lucero, C. Lecture 16: Classification & Generalized Linear Models. CMDA-4654, Virginia Tech.
+- Urban Institute. Logit and Probit Regression. https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression
+- MetricGate. Probit vs. Logit Models for Binary Outcomes. https://metricgate.com/blogs/probit-vs-logit-regression/
+- Abbott, M.G. ECON 452 Note 15: Marginal Effects in Probit Models. Queen's University. https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf
+- Friedman, J., Hastie, T., Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). https://glmnet.stanford.edu
+- R Packages: `glmnet`, `caret`, `margins`, `Sleuth3`, `dplyr`, `ggplot2`
 
 ## Appendix
 - Probit model - Maximum Likelihood details
 - Convergence tolerance pseudocode logic
-
-
