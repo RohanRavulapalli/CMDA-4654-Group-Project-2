@@ -1,91 +1,59 @@
 ---
-title: "CMDA-4654  \n Project 2"
-subtitle: "Project 2"
-author: "Hipski, "
-date: "Today's Date"
+title: "Probit Regression Function"
+subtitle: "Applications in Government & Politics"
+author: "Elliot Hipski"
+date: "April 2026"
 output:
-  pdf_document:
-    highlight: haddock
-keep_tex: no
-number_sections: no
-html_document:
-  df_print: paged
-geometry: margin = 0.5in
-header-includes:
-- \usepackage{booktabs}
-- \usepackage{longtable}
-- \usepackage{array}
-- \usepackage{multirow}
-- \usepackage{wrapfig}
-- \usepackage{float}
-- \usepackage{colortbl}
-- \usepackage{pdflscape}
-- \usepackage{tabu}
-- \usepackage{threeparttable}
-- \usepackage{threeparttablex}
-- \usepackage[normalem]{ulem}
-- \usepackage{makecell}
-- \usepackage{xcolor}
-editor_options:
-  chunk_output_type: console
-documentclass: article
-urlcolor: blue
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
 ---
-  
-<!-- The above is set to automatically compile to a .pdf file.   -->
-<!-- It will only succeed if LaTeX is installed. -->
+## Table of Contents
+
+1. Prerequisite Knowledge
+2. General Explanation
+3. Mathematical Explanation
+4. Implementation
+5. Comparison to Other Models
+6. Citations and Appendix
+
+# Topic 1 | Prerequisite Knowledge
+
+## Bernoulli Distribution 
+Used for modeling binary outcomes. applies $\text{Var}(X) = E[X^2] - (E[X])^2 = p - p^2 = p(1 - p)$ 
+
+## Logistic Regression
+Probit is used instead of this model 
+
+## Gradient
+The vector of partial derivatives used to navigate the likelihood surface and find the maximum likelihood estimate.
+
+## Hessian
+A matrix of second-order partial derivatives that describes the local curvature of the log-likelihood function.
+
+## Expected Hessian
+Used in Fisher Scoring to simplify calculations; it is defined as being Positive Semi-Definite for the Probit model.
+
+## Link Function 
+
+# Topic 2 | General Explanation
+
+## The Probit Mechanism
+
+- **Distribution Assumption**: Assumes an underlying normal distribution for the latent variable.
+- **Inputs**: Utilizes the CDF ($\Phi$) and PDF ($\phi$) of the standard normal distribution.
+- **Predictor Matrix**: Uses a linear predictor $X\beta$, where $X$ contains a column of 1s (intercept) and a column of observations.
+- **Score Calculation**: Calculated using the difference between $y$ variables and the normal PDF, scaled by the ratio of the PDF to the Bernoulli variance.
+- **Iteration**: The system solves for $\beta$ by using the Hessian and Gradient to update variables until convergence (difference < tolerance).
+
+# Topic 3 | Mathematical Explanation
 
 
-```{r setup, include=FALSE}
-# This is the setup chunk
-#  Here you can set global options for the entire document
 
-library(knitr) # I recommend doing this here
+# Topic 4 | Implementation
 
-# Although you can call functions from a library using the following notation
-#  without loading the entire library.
-knitr::opts_chunk$set(echo = TRUE, 
-                      comment = NA, # Required
-                      fig.path = "./figures/",  # Store all figures here in relative path (make the folder first)
-                      fig.align = "center",
-                      fig.width = 7,
-                      fig.height = 7,
-                      message = FALSE, # Turn off load messages
-                      warning = FALSE # Turn off warnings
-                      )
-
-```
-
-\clearpage
-
-```{r include=FALSE}
-# You should not echo this chunk.
-# include=FALSE does more than echo=FALSE, it actually does: echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'
-
-# You should set your working directory at the very beginning of your R Markdown file
-# setwd("~/Dropbox/teaching/FA2020/CMDA_4654/homework/homework1/")
-
-# In linux ~/ is shorthand for /home/username/
-# You should type things out properly for your system
-# Mac: /Users/username/Documents/CMDA4654/Lectures/Lecture_03/.../
-# Windows: C:/Users/username/Documents/etc/Lecture/Lecture_03/.../
-
-
-```
-
-<!-- ---------------------------------------------------------------------------------------------------- -->
-<!-- ---------------- Homework Problems start below these lines ----------------------------------------- -->
-<!-- ---------------------------------------------------------------------------------------------------- -->
-
-
-# Problem 1
-
-## Part a
-
-Example Chunk Below
-
-```{r}
-myprobit = function(X, y, max_iter, tolerance){
+```{r echo=TRUE}
+myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
 
   m = ncol(X)
   beta <- rep(0, m)
@@ -107,21 +75,24 @@ myprobit = function(X, y, max_iter, tolerance){
     copy_beta = beta
     beta <- beta - solve(H, g)
     
-    cat("Iteration", i, ":\n")
-    j=1
-    for (b in beta){
-      cat("Beta", j, " = ", beta[j], "\n")
-      j=j+1
+    if (verbose){
+      cat("Iteration", i, ":\n")
+      j=1
+      for (b in beta){
+        cat("Beta", j, " = ", beta[j], "\n")
+        j=j+1
+      }
     }
     if ((sum(beta - copy_beta)^2) < tolerance) {
-      break
-    }
+        return(beta)
+        break
+      }
   }
 }
 ```
 
 
-```{r}
+```{r echo=TRUE}
 summary(mtcars)
 X <- model.matrix(am ~ mpg, data = mtcars)
 y <- mtcars$am
@@ -129,5 +100,42 @@ myprobit(X,y,32, 0.00009)
 
 ```
 
+## Solving the System
+
+### Optimization Methods
+
+### Testing
+
+# Topic 5 | Comparison to Other Models
+
+## Probit vs. Logistic Regression
+
+- **Similarities**:
+  - Both are GLMs for predicting binary outcomes.
+  - Both apply gradient functions and use Likelihood Ratio Tests.
+  - Both are widely used in Econometrics and Political Science.
+- **Differences**:
+  - **Logit**: Uses the logit function ($log(p/1-p)$) as the link.
+  - **Probit**: Uses the inverse normal distribution ($\Phi^{-1}$) as the link. Economists often prefer Probit.
+
+## Linear & Lasso Regression
+
+- **Linear Regression**:
+  - *Difference*: Based on the information matrix $X^T X$ and design matrix $X$ multiplied by $y$; results interpreted via $R^2$ and ANOVA.
+- **Lasso (LAR)**:
+  - *Difference*: Focuses on variable selection and shrinkage; attempts to perform Least Angle Regression to find the linear combination $\beta$.
+
+# References
+
+## Citations
+- Yanai, Y. [Logit and Probit](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
+- [Econometrics with R - Probit and Logit](https://www.econometrics-with-r.org/11.2-palr.html)
+- Wikipedia: Logistic Regression
+- Lucero: Lecture 16 (Probit Maximum Likelihood)
+- R Packages: `xaringan`, `rstudioaddins`
+
+## Appendix
+- Probit model - Maximum Likelihood details
+- Convergence tolerance pseudocode logic
 
 
