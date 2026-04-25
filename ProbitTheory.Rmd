@@ -279,6 +279,10 @@ plot(mtcars$mpg, mtcars$am,
 lines(mpg_seq, pred_prob, lwd = 2)
 ```
 
+There is a positive relationship between MPG and the probability that a car has a manual transmission: as fuel efficiency increases, the likelihood that a car is manual increases.
+
+The probability that a car has a manual transmission increases smoothly with MPG, with the most rapid increase occurring around 20 MPG, where the likelihood transitions from mostly automatic to mostly manual.
+
 ### Extension
 
 When extending the probit model to include multiple predictors, the structure of the model remains unchanged, but the linear predictor becomes a combination of multiple variables:
