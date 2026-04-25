@@ -266,6 +266,10 @@ coef(glm(am ~ mpg, data = mtcars, family = binomial(link="probit")))
 R's in-built function confirms the results from our implementation to four decimal places.
 
 ```{r}
+model <- glm(am ~ mpg, 
+             data = mtcars, 
+             family = binomial(link = "probit"))
+
 mpg_seq <- seq(min(mtcars$mpg), max(mtcars$mpg), length.out = 100)
 
 pred_prob <- predict(model, newdata = data.frame(mpg = mpg_seq), type = "response")
