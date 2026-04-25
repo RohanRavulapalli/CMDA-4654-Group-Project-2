@@ -1,0 +1,290 @@
+---
+title: "ProbitTheory"
+author: "Arnav Gupta"
+date: "2026-04-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Probit Regression Theory
+
+### Step 1: Linear Predictor
+
+$$
+\eta_i = x_i^\top \beta
+$$
+
+```{r, eval = FALSE}
+eta <- X %*% beta
+```
+
+The linear predictor is passed through a standard normal CDF to convert it to a probability
+
+### Step 2: Linear Predictor –\> Probability
+
+$$
+\hat{p}_i = \Phi(\eta_i) \quad \text{and} \quad \hat{q}_i = \phi(\eta_i)
+$$
+
+```{r, eval = FALSE}
+phat <- pnorm(eta)
+qhat <- dnorm(eta)
+```
+
+Using the linear predictor, $\hat{p}_i = \Phi(\eta_i)$ converts it into a probability between 0 and 1 for $Y_i = 1$, while $\hat{q}_i = \phi(\eta_i)$ indicates the rate of change of that probability with respect to the linear predictor at that point.
+
+### Step 3: Score Vector
+
+$$
+s(\beta) = \sum_{i=1}^{N} \frac{\phi(x_i^\top \beta)}{\Phi(x_i^\top \beta)\left(1 - \Phi(x_i^\top \beta)\right)} \left(y_i - \Phi(x_i^\top \beta)\right) x_i
+$$
+
+The score function tells us in which direction should the coefficients $\beta$ to increase the probability of observing the data (dependent variable) given the parameters (independent variables).
+
+The score function accomplishes that with three components.
+
+$$
+\frac{\phi(\eta_i)}{\Phi(\eta_i)\big(1 - \Phi(\eta_i)\big)}
+\times (y_i - \Phi(\eta_i))
+\times x_{ij}
+$$
+
+**Ratio:** tells us how sensitive the model is at that point $\eta_i = x_i^\top \beta$. At the start of the estimation, the coefficients $\beta$ are initialized to 0. At this point, the predicted probability of all events is 0.5, and the ratio takes a moderate value, meaning the model adjusts to errors and is positioned to learn.
+
+**Residual:** compares what actually happened $y_i$ = 0 or 1 with the predicted probability. If it is positive, the model predicted too low. If it is negative, the model predicted too high.
+
+**Gradient:** is obtained by differentiating the linear predictor with respect to the coefficients. This determines how changes in each coefficient affect the prediction. The gradient tells the model both the **direction** (increase or decrease a coefficient) and the **magnitude** of adjustment needed so that predicted probabilities better align with the observed data.
+
+$$
+\eta_i = x_i^\top \beta
+$$
+
+$$
+\frac{\partial \eta_i}{\partial \beta_j} = x_{ij}
+$$
+
+```{r, eval = FALSE}
+ratio <- qhat / (phat * (1 - phat))
+score <- (y - phat) * ratio
+g     <- t(X) %*% score
+```
+
+### Step 4: Hessian
+
+The weights tell the model to focus on observations that are hardest to classify (those with predicted probabilities near 0.5 ex. initialization), and the Hessian uses this information to determine how large a step to take when updating the coefficients.
+
+$$
+\mathbf{H} = -\mathbf{X}^\top \mathbf{W} \mathbf{X}
+$$
+
+$$
+w_i = \frac{\phi(\eta_i)^2}{\Phi(\eta_i)(1 - \Phi(\eta_i))}
+$$
+
+```{r, eval = FALSE}
+w <- (qhat^2) / (phat * (1 - phat))
+H <- -t(X) %*% (X * as.vector(w))
+```
+
+### Step 5: Newton-Raphson Update
+
+$$
+\theta_{new} = \theta_{old} - [\text{Hessian}]^{-1} \times [\text{Gradient}]
+$$
+
+$$
+\beta^{(t+1)} = \beta^{(t)} - \mathbf{H}(\beta^{(t)})^{-1} s(\beta^{(t)})
+$$
+
+The algorithm looks at three things:
+
+1.  Where it is now $\beta^{(t)}$
+2.  Which direction improves the model? **The gradient**
+3.  How aggressive the move in the direction should be? **The Hessian**
+
+The new coefficients represent the difference between the previous coefficients and the new curvature adjusted step.
+
+```{r, eval = FALSE}
+beta <- beta - solve(H, g)
+```
+
+The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
+
+## MtCars Implementation
+
+What is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission?
+
+```{r}
+data(mtcars)
+
+X <- model.matrix(am ~ mpg, data = mtcars)
+y <- mtcars$am
+
+beta <- c(0, 0)   # initial coefficients
+```
+
+$$
+X =\begin{bmatrix}1 & 21.0 \\1 & 21.0 \\1 & 22.8 \\1 & 21.4 \\1 & 18.7 \\1 & 18.1 \\1 & 14.3 \\1 & 24.4 \\1 & 22.8 \\1 & 19.2 \\1 & 17.8 \\1 & 16.4 \\1 & 17.3 \\1 & 15.2 \\1 & 10.4 \\1 & 10.4 \\1 & 14.7 \\1 & 32.4 \\1 & 30.4 \\1 & 33.9 \\1 & 21.5 \\1 & 15.5 \\1 & 15.2 \\1 & 13.3 \\1 & 19.2 \\1 & 27.3 \\1 & 26.0 \\1 & 30.4 \\1 & 15.8 \\1 & 19.7 \\1 & 15.0 \\1 & 21.4\end{bmatrix}
+$$
+
+$$
+\beta = \begin{bmatrix} \beta_0 \\ \beta_1 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+$$
+
+### Step 1: Linear Predictor
+
+```{r}
+eta <- X %*% beta
+
+cat("Step 1: Linear Predictor (eta)\n")
+print(head(eta))
+cat("\nAll values = 0 → model has no information yet\n\n")
+```
+
+### Step 2: Linear Predictor –\> Probability
+
+```{r}
+phat <- pnorm(eta)
+qhat <- dnorm(eta)
+
+cat("Step 2:(phat)\n")
+print(head(phat))
+
+cat("\nStep 2:(qhat)\n")
+print(head(qhat))
+
+cat("\nInterpretation:\n")
+cat("- phat = 0.5 → model is completely uncertain\n")
+cat("- qhat ≈ 0.399 → maximum sensitivity to change\n\n")
+```
+
+### Step 3: Score Vector
+
+```{r}
+ratio <- qhat / (phat * (1 - phat))
+score <- (y - phat) * ratio
+g     <- t(X) %*% score
+
+cat("Step 3: Ratio\n")
+print(head(ratio))
+
+cat("\nInterpretation: Ratio ≈ 1.596 → model is responsive to errors\n\n")
+
+cat("Step 3: Score (first 6 observations)\n")
+print(head(score))
+
+cat("\nInterpretation:\n")
+cat("- Positive → model underpredicts (needs to increase probability)\n")
+cat("- Negative → model overpredicts (needs to decrease probability)\n\n")
+
+cat("Step 3: Gradient\n")
+print(g)
+
+cat("\nInterpretation:\n")
+cat("- Beta0 gradient:", g[1], "→ overall adjustment to baseline i.e. model less likely to be manual (1)\n")
+cat("- Beta1 gradient:", g[2], "→ how mpg should influence prediction i.e. Positive Beta1 gradient indicates manual cars more likely to have higher MPH\n\n")
+```
+
+### Step 4: Hessian
+
+```{r}
+w <- (qhat^2) / (phat * (1 - phat))
+H <- -t(X) %*% (X * as.vector(w))
+
+cat("Step 4: Weights (first 6)\n")
+print(head(w))
+
+cat("\nInterpretation: All weights equal → every observation equally important at start\n\n")
+
+cat("Step 4: Hessian Matrix\n")
+print(H)
+
+cat("\nInterpretation:\n")
+cat("- Large magnitude values → strong curvature\n")
+cat("- mpg term dominates → mpg is influential\n\n")
+```
+
+### Step 5: Newton-Raphson Update
+
+```{r}
+beta_new <- beta - solve(H, g)
+
+cat("Step 5: Updated Beta\n")
+print(beta_new)
+
+cat("\nInterpretation:\n")
+cat("- Beta0 is negative → baseline probability of manual is low\n")
+cat("- Beta1 is positive → higher mpg increases probability of manual\n")
+```
+
+The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
+
+#### Our Implementation of Probit Regresion:
+
+```{r}
+X <- model.matrix(am ~ mpg, data = mtcars)
+y <- mtcars$am
+
+beta <- c(0, 0)
+tol  <- 1e-8
+
+converged <- FALSE
+i <- 0
+
+while (!converged) {
+  i <- i + 1
+  
+  eta <- X %*% beta
+  phat <- pnorm(eta)
+  qhat <- dnorm(eta)
+  
+  ratio <- qhat / (phat * (1 - phat))
+  score <- (y - phat) * ratio
+  g     <- t(X) %*% score
+  
+  w <- (qhat^2) / (phat * (1 - phat))
+  H <- -t(X) %*% (X * as.vector(w))
+  
+  beta <- beta - solve(H, g)
+  
+  if (max(abs(g)) < tol) {
+    converged <- TRUE
+    cat("Converged at iteration", i, "\n")
+    cat("Final Beta0 =", beta[1], "\n")
+    cat("Final Beta1 =", beta[2], "\n")
+  }
+}
+```
+
+```{r}
+coef(glm(am ~ mpg, data = mtcars, family = binomial(link="probit")))
+```
+
+R's in-built function confirms the results from our implementation to four decimal places.
+
+```{r}
+mpg_seq <- seq(min(mtcars$mpg), max(mtcars$mpg), length.out = 100)
+
+pred_prob <- predict(model, newdata = data.frame(mpg = mpg_seq), type = "response")
+
+plot(mtcars$mpg, mtcars$am,
+     xlab = "MPG",
+     ylab = "Probability of Manual (am = 1)",
+     main = "Probit Regression: MPG vs Manual Transmission",
+     pch = 16)
+
+lines(mpg_seq, pred_prob, lwd = 2)
+```
+
+### Extension
+
+When extending the probit model to include multiple predictors, the structure of the model remains unchanged, but the linear predictor becomes a combination of multiple variables:
+
+$$
+P(y_i = 1) = \Phi(\beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i})
+$$
+
+Each coefficient represents a partial effect, meaning that the effect of one variable is measured while holding the other variables constant. For example, $\beta_1$ captures the effect of MPG on the probability of a manual transmission, controlling for weight.
