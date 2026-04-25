@@ -24,17 +24,17 @@ subtitle: Applications in Government & Politics
 ## Bernoulli Distribution Variance
 Used for modeling binary outcomes. The variance is defined as $\text{Var}(X) = E[X^2] - (E[X])^2 = p - p^2 = p(1 - p)$ 
 
-## General Linear Model
-A general Linear Model is a model that applies a linear function to a dataset, with the general rules of 
+## General Linearized Model
+A *General Linearized Model* is a model that applies a linear function to a dataset, with the general rules of mapping the input to the output y, and mapping it according to a **Link Function**.
 
 ## Gradient
-The vector of partial derivatives used to navigate the likelihood surface and find the maximum likelihood estimate.
+A vector of partial derivatives.  It is used in mapping the log likelihood function of the linear model.  For this case, we use the weights as slopes and apply the transformation $X^T \cdot W$, where $W$ is the weights matrix. This is used in solving for the **Hessian**
 
 ## Hessian
-A matrix of second-order partial derivatives that describes the local curvature of the log-likelihood function.
+A matrix of 2nd order partial derivatives.  For this case, however, we take the negative Expected Value of the hessian, which simplifies the matrix math.  Using the previously defined weights matrix, a formula for solving the Expected Hessian becomes (2): 
+\[ X^T W X^T \]
 
-## Expected Hessian
-Used in Fisher Scoring to simplify calculations; it is defined as being Positive Semi-Definite for the Probit model.
+## 
 
 ## Link Function 
 
@@ -104,7 +104,11 @@ myprobit(X,y,32, 0.00009, FALSE)
 # Solving the System
 
 ## Optimization Methods
-
+- There are 2 main methods of creating a model for probit regression:
+### 1. Newton-Raphson method
+We used a method similar to Newton Raphson, but rather than use the Hessian, the Expected Hessian was used, which is used for IRLS and is simpler to calculate.
+### 2. Iteratively Reweighted Least Squares / Fisher Scoring
+- These methods can be shown to be mathematically the same(7)
 ## Testing
 
 # Topic 5 | Comparison to Other Models
@@ -638,19 +642,33 @@ confusionMatrix(
 
 - For government and political science applications, probit regression is the standard and appropriate choice.
 
-# References
+# Citations | References {.shrink}
 
-## Citations
+1. **Abbott, M. G.** (n.d.). *ECON 452 Note 15: Marginal Effects in Probit Models*. Queen's University. [https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf](https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf)
 
-**Comparison Section (Rohan)**
+2. **Friedman, J., Hastie, T., & Tibshirani, R.** (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). [https://glmnet.stanford.edu](https://glmnet.stanford.edu)
 
-- Lucero, C. Lecture 16: Classification & Generalized Linear Models. CMDA-4654, Virginia Tech.
-- Urban Institute. Logit and Probit Regression. https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression
-- MetricGate. Probit vs. Logit Models for Binary Outcomes. https://metricgate.com/blogs/probit-vs-logit-regression/
-- Abbott, M.G. ECON 452 Note 15: Marginal Effects in Probit Models. Queen's University. https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf
-- Friedman, J., Hastie, T., Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). https://glmnet.stanford.edu
+3. **Hanck, C., Arnold, M., Gerber, A., & Schmelzer, M.** (2020). *11.2 Probit and Logit Regression*. Introduction to Econometrics with R. [https://www.econometrics-with-r.org/11.2-palr.html](https://www.econometrics-with-r.org/11.2-palr.html)
+
+4. **Lucero, C.** (2026). *Lecture 16: Classification & Generalized Linear Models*. CMDA 4654, Virginia Tech.
+
+5. **MetricGate.** (n.d.). *Probit vs. Logit Models for Binary Outcomes*. [https://metricgate.com/blogs/probit-vs-logit-regression/](https://metricgate.com/blogs/probit-vs-logit-regression/)
+
+6. **RStudio.** (n.d.). *RStudio Addins*. [https://rstudio.github.io/rstudioaddins/](https://rstudio.github.io/rstudioaddins/)
+
+7. **Taboga, M.** (2021). *Probit classification model - Maximum likelihood*. Lectures on Probability Theory and Mathematical Statistics. [https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood](https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood)
+
+8. **Urban Institute.** (n.d.). *Logit and Probit Regression*. [https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression](https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression)
+
+9. **Wikimedia Commons.** (2021). *File:Hokkaido.parliamentary.svg*. [https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg](https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg)
+
+10. **Wikipedia contributors.** (2024). *Logistic regression*. Wikipedia, The Free Encyclopedia. [https://en.wikipedia.org/wiki/Logistic_regression](https://en.wikipedia.org/wiki/Logistic_regression)
+
+11. **Xie, Y.** (2024). *Xaringan: Presentation Ninja* [R package]. [https://github.com/yihui/xaringan](https://github.com/yihui/xaringan)
+
+12. **Yanai, Y.** (n.d.). *Logit and Probit Models*. Research Methods 1. [https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
 - R Packages: `glmnet`, `caret`, `margins`, `Sleuth3`, `dplyr`, `ggplot2`
 
-## Appendix
+# Appendix
 - Probit model - Maximum Likelihood details
 - Convergence tolerance pseudocode logic
