@@ -1,24 +1,37 @@
 ---
-title: "ProbitTheory"
-author: "Arnav Gupta"
-date: "2026-04-25"
-output: html_document
+title: "Probit Regression Function"
+author: "Elliot Hipski, Rohan, Brandon, Arnav"
+date: "April 2026"
+output:
+  beamer_presentation: default
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+subtitle: Applications in Government & Politics
+header-includes:
+   - |
+     \setbeamertemplate{footline}{
+       \hfill
+       \usebeamerfont{page number in head/foot}
+       \insertframenumber\,/\,\inserttotalframenumber\kern1em\vskip2pt
+     }
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Probit Regression Theory
+# Probit Regression Theory
 
 ```{r, echo=FALSE}
 if (!require(margins)) install.packages("margins")
 library(margins)
 ```
 
-##New Slide
+#New Slide
 
-### Step 1: Linear Predictor
+## Step 1: Linear Predictor
 
 $$
 \eta_i = x_i^\top \beta
@@ -30,9 +43,9 @@ eta <- X %*% beta
 
 The linear predictor is passed through a standard normal CDF to convert it to a probability
 
-##New Slide
+#New Slide
 
-### Step 2: Linear Predictor –\> Probability
+## Step 2: Linear Predictor – Probability
 
 $$
 \hat{p}_i = \Phi(\eta_i) \quad \text{and} \quad \hat{q}_i = \phi(\eta_i)
@@ -45,9 +58,9 @@ qhat <- dnorm(eta)
 
 Using the linear predictor, $\hat{p}_i = \Phi(\eta_i)$ converts it into a probability between 0 and 1 for $Y_i = 1$, while $\hat{q}_i = \phi(\eta_i)$ indicates the rate of change of that probability with respect to the linear predictor at that point.
 
-##New Slide
+#New Slide
 
-### Step 3: Score Vector
+## Step 3: Score Vector
 
 $$
 s(\beta) = \sum_{i=1}^{N} \frac{\phi(x_i^\top \beta)}{\Phi(x_i^\top \beta)\left(1 - \Phi(x_i^\top \beta)\right)} \left(y_i - \Phi(x_i^\top \beta)\right) x_i
@@ -67,15 +80,15 @@ score <- (y - phat) * ratio
 g     <- t(X) %*% score
 ```
 
-##New Slide
+#New Slide
 
 The score function has three components.
 
-**Ratio:** tells us how sensitive the model is at that point $\eta_i = x_i^\top \beta$. At the start of the estimation, the coefficients $\beta$ are initialized to 0. At this point, the predicted probability of all events is 0.5, meaning the model adjusts to errors and is positioned to learn.
+- **Ratio:** tells us how sensitive the model is at that point $\eta_i = x_i^\top \beta$. At the start of the estimation, the coefficients $\beta$ are initialized to 0. At this point, the predicted probability of all events is 0.5, meaning the model adjusts to errors and is positioned to learn.
 
-**Residual:** compares what actually happened $y_i$ = 0 or 1 with the predicted probability. If it is positive, the model predicted too low. If it is negative, the model predicted too high.
+- **Residual:** compares what actually happened $y_i$ = 0 or 1 with the predicted probability. If it is positive, the model predicted too low. If it is negative, the model predicted too high.
 
-**Gradient:** tells the model both the **direction** (increase or decrease a coefficient) and the **magnitude** of adjustment needed so that predicted probabilities better align with the observed data.
+- **Gradient:** tells the model both the **direction** (increase or decrease a coefficient) and the - **magnitude** of adjustment needed so that predicted probabilities better align with the observed data.
 
 $$
 \eta_i = x_i^\top \beta
@@ -85,9 +98,9 @@ $$
 \frac{\partial \eta_i}{\partial \beta_j} = x_{ij}
 $$
 
-##New Slide
+#New Slide
 
-### Step 4: Hessian
+## Step 4: Hessian
 
 The weights tell the model to focus on observations that are hardest to classify (those with predicted probabilities near 0.5 ex. initialization), and the Hessian uses this information to determine how large a step to take when updating the coefficients.
 
@@ -104,9 +117,9 @@ w <- (qhat^2) / (phat * (1 - phat))
 H <- -t(X) %*% (X * as.vector(w))
 ```
 
-##New Slide
+#New Slide
 
-### Step 5: Newton-Raphson Update
+## Step 5: Newton-Raphson Update
 
 $$
 \theta_{new} = \theta_{old} - [\text{Hessian}]^{-1} \times [\text{Gradient}]
@@ -130,9 +143,9 @@ beta <- beta - solve(H, g)
 
 The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
 
-##New Slide
+#New Slide
 
-## MtCars Implementation
+# MtCars Implementation
 
 **Research Question:** What is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission?
 
@@ -147,9 +160,9 @@ beta <- c(0, 0)   # initial coefficients
 
 We initialized the coefficients to zero, representing a neutral starting point for the regression process.
 
-##New Slide
+#New Slide
 
-### Step 1: Linear Predictor
+## Step 1: Linear Predictor
 
 ```{r, comment=""}
 eta <- X %*% beta
@@ -159,9 +172,9 @@ print(head(eta))
 
 All values = 0 → model has no information yet
 
-##New Slide
+#New Slide
 
-### Step 2: Linear Predictor –\> Probability
+## Step 2: Linear Predictor –\> Probability
 
 ```{r, comment=""}
 phat <- pnorm(eta)
@@ -173,13 +186,13 @@ print(head(qhat))
 
 Interpretation:
 
-\- phat = 0.5 → model is completely uncertain
+- phat = 0.5 → model is completely uncertain
 
-\- qhat ≈ 0.399 → maximum sensitivity to change
+- qhat ≈ 0.399 → maximum sensitivity to change
 
-##New Slide
+#New Slide
 
-### Step 3: Score Vector
+## Step 3: Score Vector
 
 ```{r, comment=""}
 ratio <- qhat / (phat * (1 - phat))
@@ -198,11 +211,11 @@ Positive Score → model underpredicts (needs to increase probability)
 
 Negative Score → model overpredicts (needs to decrease probability)Interpretation:
 
-\- Beta0 gradient: -4.787307 → overall adjustment to baseline i.e. model less likely to be manual (1)
+- Beta0 gradient: -4.787307 → overall adjustment to baseline i.e. model less likely to be manual (1)
 
-##New Slide
+#New Slide
 
-### Step 4: Hessian
+## Step 4: Hessian
 
 ```{r, comment=""}
 w <- (qhat^2) / (phat * (1 - phat))
@@ -217,9 +230,9 @@ Weight Interpretation: All weights equal → every observation equally important
 
 Hessian Interpretation: - Large magnitude values → strong curvature → mpg is influential
 
-##New Slide
+#New Slide
 
-### Step 5: Newton-Raphson Update
+## Step 5: Newton-Raphson Update
 
 ```{r, comment=""}
 beta_new <- beta - solve(H, g)
@@ -229,15 +242,15 @@ print(beta_new)
 
 Interpretation:
 
-\- Beta0 is negative → baseline probability of manual is low
+- Beta0 is negative → baseline probability of manual is low
 
-\- Beta1 is positive → higher mpg increases probability of manual
+- Beta1 is positive → higher mpg increases probability of manual
 
 The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
 
-##New Slide
+#New Slide
 
-#### Our Implementation of Probit Regresion:
+## Our Implementation of Probit Regresion:
 
 ```{r, comment=""}
 myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
@@ -283,18 +296,18 @@ myprobit(X,y,32, 0.00009, FALSE)
 
 ```
 
-##New Slide: Verifying with R's in-built function
+#New Slide: Verifying with R's in-built function
 
 ```{r, comment=""}
 modell <- coef(glm(am ~ mpg, data = mtcars, family = binomial(link="probit")))
 modell
 ```
 
-\- Intercept **(−3.91)** represents the baseline latent tendency for a car to be manual when MPG is zero; it is strongly negative, meaning the model starts from a situation where automatic transmission is much more likely before considering MPG.
+- Intercept **(−3.91)** represents the baseline latent tendency for a car to be manual when MPG is zero; it is strongly negative, meaning the model starts from a situation where automatic transmission is much more likely before considering MPG.
 
-\- The MPG coefficient **(0.182)** means that each additional unit of MPG increases the latent “manual likelihood” score, shifting the probability toward a manual transmission.
+- The MPG coefficient **(0.182)** means that each additional unit of MPG increases the latent “manual likelihood” score, shifting the probability toward a manual transmission.
 
-##New Slide
+#New Slide
 
 ```{r, echo=FALSE}
 model <- glm(am ~ mpg, 
@@ -316,7 +329,7 @@ lines(mpg_seq, pred_prob, lwd = 2)
 
 There is a positive relationship between MPG and the probability that a car has a manual transmission: as fuel efficiency increases, the likelihood that a car is manual increases.
 
-##New Slide
+#New Slide
 
 ```{r, comment=""}
 library(margins)
@@ -326,9 +339,9 @@ summary(mfx)
 
 To answer our research question, what is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission, for each 1 MPG increase, the probability that a car is manual increases by about 4.7 percentage points (on average).\
 
-##NewSlide
+#NewSlide
 
-### Extension
+## Extension
 
 When extending the probit model to include multiple predictors, the structure of the model remains unchanged:
 
@@ -340,15 +353,15 @@ Each coefficient represents a partial effect, meaning that the effect of one var
 
 If we add weight to the model, the MPG coefficient captures its effect on transmission probability while holding weight constant—meaning it reflects MPG’s independent contribution rather than differences driven by weight.
 
-##New Slide
+#New Slide
 
-### Government/Politics Dataset
+## Government/Politics Dataset
 
 **Research question**: to what extent do socioeconomic factors, specifically age, education, and income, predict voter turnout in American national elections?
 
 We used a dataset provided by the American National Election Studies, detailing whether individuals voted or not in the 2024 election. The dataset had over 44 variables it considered, such as occupation and religion.
 
-##New Slide
+#New Slide
 
 Translating information from the codebook, we considered the variables below.
 
@@ -356,7 +369,7 @@ Translating information from the codebook, we considered the variables below.
 
 We cleaned the dataset to only use the variables above
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=FALSE}
 df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
 
 
@@ -402,9 +415,13 @@ df_clean$weight <- df_clean$VCF0009z
 df_clean <- na.omit(df_clean)
 ```
 
-##New Slide
+```{r, echo=FALSE}
+df_clean = read.csv("./anes_cleaned.csv", stringsAsFactors = FALSE)
+```
 
-#### Exploratory Data Analysis
+#New Slide
+
+## Exploratory Data Analysis
 
 ```{r, comment=""}
 chisq.test(table(df_clean$vote, df_clean$education))
@@ -412,11 +429,11 @@ chisq.test(table(df_clean$vote, df_clean$education))
 chisq.test(table(df_clean$vote, df_clean$party_id))
 ```
 
-\- For education, the test statistic is very large $X^2 = 3910.4$ with a p-value effectively equal to zero. We can confidently reject the idea that voting behavior is independent of education level.
+- For education, the test statistic is very large $X^2 = 3910.4$ with a p-value effectively equal to zero. We can confidently reject the idea that voting behavior is independent of education level.
 
-\- For party identification, the chi-squared test $X^2 = 3694.5$ also produces a near-zero p-value, indicating a strong relationship between party ID and turnout.
+- For party identification, the chi-squared test $X^2 = 3694.5$ also produces a near-zero p-value, indicating a strong relationship between party ID and turnout.
 
-##New Slide
+#New Slide
 
 ```{r, comment="", echo=FALSE}
 model1 <- glm(vote ~ age + education + income + party_id + interest,
@@ -429,7 +446,7 @@ summary(model1)
 
 Latent scores.
 
-##New Slide
+#New Slide
 
 ```{r, comment=""}
 mfx <- margins(model1)
@@ -448,7 +465,7 @@ Similarly, **political interest** has one of the largest effects in the model. T
 
 Overall, while socioeconomic resources are important, these results show that political engagement and partisan identity are equally powerful predictors of turnout.
 
-## Appendix Code
+# Appendix Code
 
 ```{r, eval=FALSE}
 model <- glm(am ~ mpg, 
@@ -468,7 +485,7 @@ plot(mtcars$mpg, mtcars$am,
 lines(mpg_seq, pred_prob, lwd = 2)
 ```
 
-```{r, eval=TRUE}
+```{r, eval=TRUE, eval=FALSE}
 df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
 
 
