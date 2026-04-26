@@ -74,7 +74,7 @@ A matrix of 2nd order partial derivatives.  For this case, however, we take the 
     - The main difference from Logisitc regression is that logistic regression uses the logistic distribution
     - This makes it useful in studying things like human behavior, psychology, economics, and finance.
 
-
+# Arnav Slides Start Here
 
 # Topic 3 | Implementation {.shrink}
 
