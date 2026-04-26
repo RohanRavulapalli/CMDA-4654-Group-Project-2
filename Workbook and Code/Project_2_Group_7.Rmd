@@ -13,11 +13,10 @@ subtitle: Applications in Government & Politics
 ## Table of Contents
 
 1. Prerequisite Knowledge
-2. General Explanation
-3. Mathematical Explanation
-4. Implementation
-5. Comparison to Other Models
-6. Citations and Appendix
+2. Theoretical and Mathematic Explanation
+3. Implementation
+4. Comparison to Other Models
+5. Citations and Appendix
 
 # Topic 1 | Prerequisite Knowledge
 
@@ -27,6 +26,8 @@ Used for modeling binary outcomes. The variance is defined as $\text{Var}(X) = E
 ## General Linearized Model
 A *General Linearized Model* is a model that applies a linear function to a dataset, with the general rules of mapping the input to the output y, and mapping it according to a **Link Function**.
 
+# Topic 1 | Prerequisite Knowledge
+
 ## Gradient
 A vector of partial derivatives.  It is used in mapping the log likelihood function of the linear model.  For this case, we use the weights as slopes and apply the transformation $X^T \cdot W$, where $W$ is the weights matrix. This is used in solving for the **Hessian**
 
@@ -34,11 +35,11 @@ A vector of partial derivatives.  It is used in mapping the log likelihood funct
 A matrix of 2nd order partial derivatives.  For this case, however, we take the negative Expected Value of the hessian, which simplifies the matrix math.  Using the previously defined weights matrix, a formula for solving the Expected Hessian becomes (2): 
 \[ X^T W X^T \]
 
-## 
+# Topic 1 | Prerequisite Knowledge
 
 ## Link Function 
 
-# Topic 2 | General Explanation
+# Topic 2 | Theoretical and Mathematic Explanation
 
 ## The Probit Mechanism
 
@@ -48,7 +49,9 @@ A matrix of 2nd order partial derivatives.  For this case, however, we take the 
 - **Score Calculation**: Calculated using the difference between $y$ variables and the normal PDF, scaled by the ratio of the PDF to the Bernoulli variance.
 - **Iteration**: The system solves for $\beta$ by using the Hessian and Gradient to update variables until convergence (difference < tolerance).
 
-# Topic 3 | Mathematical Explanation
+
+
+# Topic 2 | Theoretical and Mathematic Explanation
 
 
 
