@@ -129,10 +129,11 @@ myprobit(X,y,32, 0.00009, FALSE)
 
 ## Optimization Methods
 - There are 2 main methods of creating a model for probit regression:
-### 1. Newton-Raphson method
+  - 1. Newton-Raphson method
 We used a method similar to Newton Raphson, but rather than use the Hessian, the Expected Hessian was used, which is used for IRLS and is simpler to calculate.
-### 2. Iteratively Reweighted Least Squares / Fisher Scoring
+  - 2. Iteratively Reweighted Least Squares / Fisher Scoring
 - These methods can be shown to be mathematically the same(7)
+
 ## Testing
 
 # Topic 4 | Comparison to Other Models
