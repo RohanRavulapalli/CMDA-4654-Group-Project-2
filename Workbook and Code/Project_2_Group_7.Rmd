@@ -19,7 +19,7 @@ subtitle: Applications in Government & Politics
 5. Comparison to Other Models
 6. Citations and Appendix
 
-# Topic 1 | Prerequisite Knowledge {.shrink}
+# Topic 1 | Prerequisite Knowledge
 
 ## Bernoulli Distribution Variance
 Used for modeling binary outcomes. The variance is defined as $\text{Var}(X) = E[X^2] - (E[X])^2 = p - p^2 = p(1 - p)$ 
@@ -30,8 +30,6 @@ A *General Linearized Model* is a model that applies a linear function to a data
 ## Gradient
 A vector of partial derivatives.  It is used in mapping the log likelihood function of the linear model.  For this case, we use the weights as slopes and apply the transformation $X^T \cdot W$, where $W$ is the weights matrix. This is used in solving for the **Hessian**
 
-# Topic 1 | Prerequisite Knowledge {.shrink}
-
 ## Hessian
 A matrix of 2nd order partial derivatives.  For this case, however, we take the negative Expected Value of the hessian, which simplifies the matrix math.  Using the previously defined weights matrix, a formula for solving the Expected Hessian becomes (2): 
 \[ X^T W X^T \]
@@ -40,40 +38,16 @@ A matrix of 2nd order partial derivatives.  For this case, however, we take the 
 
 ## Link Function 
 
-# Topic 2 | General Explanation {.shrink}
+# Topic 2 | General Explanation
 
-- **Assumptions**: 
-    - Has all assumptions of a GLM, found in (4)
-    - Assumes a Bernouli Distribution for the y data
-- **Inputs**: 
-    - x: the design matrix, defined as having all 1s in the first column vector, with the rest being vectors for the observed values of the data
-    - y: the target variable, assumed Bernouli Distribution
-    - max_iter: maximum iterations to do
-    - tolerance: the level that is closest to zero that decides if there has been a "convergence" to the $\hat B$
-    - verbose: used for debugging, prints the steps and beta values
-    - *note* some of these inputs are handled by glm differently, like the design matrix $X$ is created by just adding a column of 1s to the dataframe passed in as x 
-      
-# Topic 2 | General Explanation {.shrink}
+## The Probit Mechanism
 
-- **Function**:
-  - initialize beta to be a vector of 0s, of length m (number of x columns)
-  - for(i in max_iter)
-    - get the linear predictor, eta
-    - calculate the PDF and CDF of the predictor assuming the normal distribution, defined as $\hat p$$\hat q$
-    - calculate the ratio of the CDF to the bernouli variance of the PDF $\hat{q} / (\hat{p}(1 -\hat{p}))$
-    - get a score vector with the previous ratio in the form $\text{ratio} \cdot (\hat{y} - \hat{p})$
-    - calculate the gradient, g, defined by $X^T \cdot \text{score}$
-    - now, we calculate the Weight matrix of the form $\frac{\hat{q}}{\hat p (1 - \hat p)}$ note the bernouli distribution in the denominator
-    - using the Weight vector, we calculate the negative expected Hessian, $H$, this is written as $-(X^T \cdot W)$
-    - finally, a copy of the current beta iteration is made, and the next iteration of beta becomes $\hat B = \hat B - (H^{-1}g)$ where g is the gradient
-    - then the tolerance check is done, checking the squared sum of $\hat B_{new} - \hat B_{old}$, or $||B_{new} - B_{old}||^2$ if this is less than our tolerance, we have converged
-    
-# Topic 2 | General Explanation {.shrink}
-- **Usage**:
-    - Probit has many uses, but most of them are in econometrics and Government.  The closest model in terms of use case is Logistic, as they both follow bernouli variables.  
-    - The main difference from Logisitc regression is that logistic regression uses the logistic distribution
-    - This makes it useful in studying things like human behavior, psychology, economics, and finance.
-      
+- **Distribution Assumption**: Assumes an underlying normal distribution for the latent variable.
+- **Inputs**: Utilizes the CDF ($\Phi$) and PDF ($\phi$) of the standard normal distribution.
+- **Predictor Matrix**: Uses a linear predictor $X\beta$, where $X$ contains a column of 1s (intercept) and a column of observations.
+- **Score Calculation**: Calculated using the difference between $y$ variables and the normal PDF, scaled by the ratio of the PDF to the Bernoulli variance.
+- **Iteration**: The system solves for $\beta$ by using the Hessian and Gradient to update variables until convergence (difference < tolerance).
+
 # Topic 3 | Mathematical Explanation
 
 
@@ -119,7 +93,7 @@ myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
 }
 ```
 
-# Topic 4 | Implementation {.shrink}
+
 ```{r echo=TRUE}
 X <- model.matrix(am ~ mpg, data = mtcars)
 y <- mtcars$am
@@ -127,20 +101,27 @@ myprobit(X,y,32, 0.00009, FALSE)
 
 ```
 
-# Topic 4 | Implementation {.shrink}
-## Solving the System
+# Solving the System
 
 ## Optimization Methods
 - There are 2 main methods of creating a model for probit regression:
-  - 1. Newton-Raphson method
+### 1. Newton-Raphson method
 We used a method similar to Newton Raphson, but rather than use the Hessian, the Expected Hessian was used, which is used for IRLS and is simpler to calculate.
-  - 2. Iteratively Reweighted Least Squares / Fisher Scoring
-
+### 2. Iteratively Reweighted Least Squares / Fisher Scoring
 - These methods can be shown to be mathematically the same(7)
-
 ## Testing
 
 # Topic 5 | Comparison to Other Models
+
+```{r topic5-render-options, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+  comment = NA,
+  message = FALSE,
+  warning = FALSE,
+  tidy = "formatR",
+  tidy.opts = list(width.cutoff = 48)
+)
+```
 
 ## Motivation
 
@@ -154,11 +135,10 @@ The goal is to understand the practical and theoretical differences between thes
 
 ---
 
-## Data: Donner Party Survival
-
+## Data: Donner Party Survival {.fragile .shrink}
 We use the **Donner Party survival dataset** from the `Sleuth3` package. The binary outcome is survival status (1 = Survived, 0 = Died), with Age and Sex as predictors.
 
-```{r comp-setup, echo=TRUE, message=FALSE, warning=FALSE}
+```{r comp-setup, echo=TRUE, results='hide', size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 library(Sleuth3); library(dplyr); library(ggplot2)
 library(glmnet);  library(caret)
 
@@ -176,6 +156,22 @@ head(donner[, c("Age", "Sex", "Status", "mystatus")], 4)
 
 ---
 
+## Data Preview {.fragile .shrink}
+
+\scriptsize
+
+
+\centering
+\scriptsize
+
+```{r comp-setup-preview, echo=FALSE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
+head(donner[, c("Age", "Sex", "Status", "mystatus")], 4)
+```
+
+\normalsize
+
+---
+
 ## Linear Regression on a Binary Response
 
 OLS fits:
@@ -186,15 +182,27 @@ When $Y \in \{0, 1\}$, this is the **Linear Probability Model (LPM)**. Since $\m
 
 ---
 
-## OLS on a Binary Response — Code
+## OLS on a Binary Response — Code {.fragile .shrink}
 
-```{r lpm-fit-code, echo=TRUE, eval=FALSE}
-# fit OLS
+\scriptsize
+
+```{r lpm-fit-code, -part1, echo=TRUE, eval=FALSE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
+# fit OLS treating the binary outcome as continuous
 lpm_fit <- lm(mystatus ~ Age + male, data = donner)
 
+# store fitted values as predicted probabilities (not bounded to [0,1])
 donner <- donner %>%
   mutate(pi_lpm = predict(lpm_fit))
+```
+\normalsize
 
+---
+
+## OLS on a Binary Response — Plot Code {.fragile .shrink}
+
+\tiny
+
+```{r lpm-fit-code-part2, echo=TRUE, eval=FALSE, size='tiny', comment=NA, message=FALSE, warning=FALSE}
 ggplot(donner, aes(x = Age, y = mystatus)) +
   geom_point(aes(color = Status), size = 2, alpha = 0.7) +
   geom_line(aes(y = pi_lpm, group = male,
@@ -204,14 +212,15 @@ ggplot(donner, aes(x = Age, y = mystatus)) +
   labs(title = "Linear Probability Model: Predictions Can Leave [0, 1]",
        y = "P(Survived)", x = "Age", linetype = "Sex",
        caption = "Dotted lines mark the valid [0,1] probability bounds") +
-  theme_bw()
+  theme_bw(base_size = 12)
 ```
+
+\normalsize
 
 ---
 
-## OLS on a Binary Response — Plot
-
-```{r lpm-fit-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+## OLS on a Binary Response — Plot {.fragile}
+```{r lpm-fit-plot, echo=FALSE, eval=TRUE, fig.height=4.2, fig.width=7.2, out.width='0.98\\linewidth', fig.align='center', comment=NA, message=FALSE, warning=FALSE}
 lpm_fit <- lm(mystatus ~ Age + male, data = donner)
 donner  <- donner %>% mutate(pi_lpm = predict(lpm_fit))
 
@@ -224,14 +233,16 @@ ggplot(donner, aes(x = Age, y = mystatus)) +
   labs(title = "Linear Probability Model: Predictions Can Leave [0, 1]",
        y = "P(Survived)", x = "Age", linetype = "Sex",
        caption = "Dotted lines mark the valid [0,1] probability bounds") +
-  theme_bw()
+  theme_bw(base_size = 12)
 ```
 
 ---
 
-## OLS Predictions Outside [0, 1]
+## OLS Predictions Outside [0, 1] {.fragile .shrink}
 
-```{r lpm-damage, echo=TRUE}
+\scriptsize
+
+```{r lpm-damage, echo=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 lpm_preds <- predict(lpm_fit)
 
 cat("Range of OLS predictions:", round(range(lpm_preds), 4), "\n")
@@ -245,6 +256,8 @@ cat("OLS misclassification rate:",
 ```
 
 Even on this small dataset, OLS produces invalid probabilities. Linear regression is not appropriate for binary outcomes.
+
+\normalsize
 
 ---
 
@@ -264,9 +277,11 @@ This assumes errors follow a standard normal distribution. Both are valid GLMs f
 
 ---
 
-## Link Functions — Code
+## Link Functions — Code {.fragile .shrink}
 
-```{r link-viz-code, echo=TRUE, eval=FALSE}
+\scriptsize
+
+```{r link-viz-code, -part1, echo=TRUE, eval=FALSE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 eta_seq <- seq(-4, 4, length.out = 300)
 
 df_links <- data.frame(
@@ -275,21 +290,31 @@ df_links <- data.frame(
              pnorm(eta_seq)),  # inverse probit (std normal CDF)
   Method = rep(c("Logistic (logit link)", "Probit (normal CDF)"), each = 300)
 )
+```
+\normalsize
 
+---
+
+## Link Functions — Plot Code {.fragile .shrink}
+
+\tiny
+
+```{r link-viz-code-part2, echo=TRUE, eval=FALSE, size='tiny', comment=NA, message=FALSE, warning=FALSE}
 ggplot(df_links, aes(x = eta, y = pi, color = Method, linetype = Method)) +
   geom_line(linewidth = 1.3) +
   labs(title = "Inverse Link Functions: Logistic vs. Probit",
        x = expression(eta ~ "(Linear Predictor)"),
        y = expression(hat(pi) ~ "(Predicted Probability)")) +
   scale_color_manual(values = c("steelblue", "firebrick")) +
-  theme_bw() + theme(legend.position = "bottom")
+  theme_bw(base_size = 12) + theme(legend.position = "bottom")
 ```
+
+\normalsize
 
 ---
 
-## Link Functions — Plot
-
-```{r link-viz-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+## Link Functions — Plot {.fragile}
+```{r link-viz-plot, echo=FALSE, eval=TRUE, fig.height=4.2, fig.width=7.2, out.width='0.98\\linewidth', fig.align='center', comment=NA, message=FALSE, warning=FALSE}
 eta_seq <- seq(-4, 4, length.out = 300)
 df_links <- data.frame(
   eta    = rep(eta_seq, 2),
@@ -302,16 +327,18 @@ ggplot(df_links, aes(x = eta, y = pi, color = Method, linetype = Method)) +
        x = expression(eta ~ "(Linear Predictor)"),
        y = expression(hat(pi) ~ "(Predicted Probability)")) +
   scale_color_manual(values = c("steelblue", "firebrick")) +
-  theme_bw() + theme(legend.position = "bottom")
+  theme_bw(base_size = 12) + theme(legend.position = "bottom")
 ```
 
 The probit curve has lighter tails — it approaches 0 and 1 faster than the logistic curve.
 
 ---
 
-## Fitting Both Models — Code
+## Fitting Both Models — Code {.fragile .shrink}
 
-```{r fit-both-code, echo=TRUE, eval=FALSE}
+\scriptsize
+
+```{r fit-both-code, echo=TRUE, eval=FALSE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 # fit logistic and probit
 logit_fit  <- glm(mystatus ~ Age + male, data = donner,
                   family = binomial(link = "logit"))
@@ -326,12 +353,15 @@ round(cbind(
   "Probit Coef" = coef(probit_fit)
 ), 4)
 ```
+\normalsize
 
 ---
 
-## Fitting Both Models — Output
+## Fitting Both Models — Output {.fragile .shrink}
 
-```{r fit-both-output, echo=FALSE, eval=TRUE}
+\scriptsize
+
+```{r fit-both-output, echo=FALSE, eval=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 logit_fit  <- glm(mystatus ~ Age + male, data = donner,
                   family = binomial(link = "logit"))
 probit_fit <- glm(mystatus ~ Age + male, data = donner,
@@ -345,32 +375,45 @@ round(cbind(
 ```
 
 The probit coefficients are smaller by a factor of roughly 1.6 to 1.8. The logistic distribution has variance $\pi^2/3 \approx 3.29$, while the standard normal has variance 1. The scales differ, but the substantive conclusions are the same.
+\normalsize
 
 ---
 
-## Predicted Probabilities — Code
+## Predicted Probabilities — Code {.fragile .shrink}
 
-```{r pred-compare-code, echo=TRUE, eval=FALSE}
+\scriptsize
+
+```{r pred-compare-code, -part1, echo=TRUE, eval=FALSE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 donner <- donner %>%
   mutate(
     pi_logit  = predict(logit_fit,  type = "response"),
     pi_probit = predict(probit_fit, type = "response")
   )
+```
+\normalsize
 
+---
+
+## Predicted Probabilities — Plot Code {.fragile .shrink}
+
+\tiny
+
+```{r pred-compare-code-part2, echo=TRUE, eval=FALSE, size='tiny', comment=NA, message=FALSE, warning=FALSE}
 ggplot(donner, aes(x = pi_logit, y = pi_probit, color = Status)) +
   geom_point(size = 2.5, alpha = 0.8) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
   labs(title = "Logistic vs. Probit: Predicted Probabilities (Donner Data)",
        x = "Logistic Predicted Probability",
        y = "Probit Predicted Probability") +
-  theme_bw()
+  theme_bw(base_size = 12)
 ```
 
+\normalsize
+
 ---
 
-## Predicted Probabilities — Plot
-
-```{r pred-compare-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+## Predicted Probabilities — Plot {.fragile}
+```{r pred-compare-plot, echo=FALSE, eval=TRUE, fig.height=4.2, fig.width=7.2, out.width='0.98\\linewidth', fig.align='center', comment=NA, message=FALSE, warning=FALSE}
 donner <- donner %>%
   mutate(
     pi_logit  = predict(logit_fit,  type = "response"),
@@ -383,16 +426,18 @@ ggplot(donner, aes(x = pi_logit, y = pi_probit, color = Status)) +
   labs(title = "Logistic vs. Probit: Predicted Probabilities (Donner Data)",
        x = "Logistic Predicted Probability",
        y = "Probit Predicted Probability") +
-  theme_bw()
+  theme_bw(base_size = 12)
 ```
 
 The predicted probabilities from both models are nearly identical, confirming that the choice of link function has minimal practical impact on fitted values.
 
 ---
 
-## Model Fit Metrics
+## Model Fit Metrics — Code {.fragile .shrink}
 
-```{r fit-metrics, echo=TRUE}
+\scriptsize
+
+```{r fit-metrics-code, echo=TRUE, eval=FALSE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 cat(sprintf("%-28s %8s %8s\n", "Metric", "Logistic", "Probit"))
 cat(sprintf("%-28s %8.3f %8.3f\n", "AIC",
             AIC(logit_fit), AIC(probit_fit)))
@@ -407,7 +452,32 @@ cat(sprintf("%-28s %8.4f %8.4f\n", "Misclassification Rate",
             log_err, prob_err))
 ```
 
-The two models produce nearly identical fit across every metric. The choice between logistic and probit is rarely driven by model performance.
+\normalsize
+
+---
+
+## Model Fit Metrics — Output {.fragile .shrink}
+
+\scriptsize
+
+```{r fit-metrics-output, echo=FALSE, eval=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
+cat(sprintf("%-28s %8s %8s\n", "Metric", "Logistic", "Probit"))
+cat(sprintf("%-28s %8.3f %8.3f\n", "AIC",
+            AIC(logit_fit), AIC(probit_fit)))
+cat(sprintf("%-28s %8.3f %8.3f\n", "Residual Deviance",
+            deviance(logit_fit), deviance(probit_fit)))
+cat(sprintf("%-28s %8.3f %8.3f\n", "Null Deviance",
+            logit_fit$null.deviance, probit_fit$null.deviance))
+
+log_err  <- mean((donner$pi_logit  > 0.5) != donner$mystatus)
+prob_err <- mean((donner$pi_probit > 0.5) != donner$mystatus)
+cat(sprintf("%-28s %8.4f %8.4f\n", "Misclassification Rate",
+            log_err, prob_err))
+```
+
+\normalsize
+
+The two models produce nearly identical fit across every metric. AIC differs by less than 0.03, and misclassification rates are equal. The choice between logistic and probit is rarely driven by model performance — it is almost always a question of convention, interpretability, or the underlying distributional assumption.
 
 ---
 
@@ -427,7 +497,9 @@ Probit coefficients do not have an odds-ratio interpretation, but average margin
 
 ---
 
-## Marginal Effects
+## Marginal Effects {.fragile .shrink}
+
+\scriptsize
 
 Probit coefficients have no direct probability interpretation on their own. The standard approach is to compute **Average Marginal Effects (AME)**:
 
@@ -435,7 +507,7 @@ $$\text{AME}_j = \frac{1}{n}\sum_{i=1}^{n} \phi(\mathbf{x}_i^T\hat{\boldsymbol{\
 
 where $\phi(\cdot)$ is the standard normal PDF.
 
-```{r marginal-effects, echo=TRUE, message=FALSE, warning=FALSE}
+```{r marginal-effects, echo=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 library(margins)
 
 # compute AMEs
@@ -444,6 +516,8 @@ summary(ame)[, c("factor", "AME", "SE", "z", "p")]
 ```
 
 This gives the change in predicted probability for a one-unit change in each predictor, averaged across all observations.
+
+\normalsize
 
 ---
 
@@ -457,71 +531,114 @@ The $\ell_1$ penalty shrinks small coefficients toward zero and eliminates irrel
 
 ---
 
-## Lasso: Fitting the Model — Code
+## Lasso: Fitting the Model — Code {.fragile .shrink}
 
-```{r lasso-fit-code, echo=TRUE, eval=FALSE}
-# glmnet needs a matrix, not a formula
+\scriptsize
+
+```{r lasso-fit-code, echo=TRUE, eval=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
+# glmnet requires a plain matrix, not a model formula
 X_mat <- model.matrix(mystatus ~ Age + male, data = donner)[, -1]
 y_vec <- donner$mystatus
 
-# fit lasso over lambda path
+# fit lasso path over 100 values of lambda (alpha=1 selects lasso over ridge)
 lasso_path <- glmnet(X_mat, y_vec, family = "binomial", alpha = 1)
-
-plot(lasso_path, xvar = "lambda", label = TRUE,
-     main = "Lasso Coefficient Path (Penalized Logistic, Donner Data)")
 ```
+
+\normalsize
 
 ---
 
-## Lasso: Coefficient Path
+## Lasso: Coefficient Path {.fragile}
+```{r lasso-fit-plot, echo=FALSE, eval=TRUE, fig.height=4.1, fig.width=7.2, out.width='0.98\\linewidth', fig.align='center', comment=NA, message=FALSE, warning=FALSE}
+coef_path <- as.matrix(lasso_path$beta)
+x_lambda <- -log(lasso_path$lambda)
 
-```{r lasso-fit-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
-X_mat <- model.matrix(mystatus ~ Age + male, data = donner)[, -1]
-y_vec <- donner$mystatus
-lasso_path <- glmnet(X_mat, y_vec, family = "binomial", alpha = 1)
-plot(lasso_path, xvar = "lambda", label = TRUE,
-     main = "Lasso Coefficient Path (Penalized Logistic, Donner Data)")
+matplot(
+  x_lambda, t(coef_path),
+  type = "l", lty = 1, lwd = 2,
+  xlab = expression(-log(lambda)),
+  ylab = "Coefficients",
+  main = "Lasso Coefficient Path (Penalized Logistic, Donner Data)"
+)
+abline(h = 0, lty = 3, col = "gray40")
+legend(
+  "bottomleft",
+  legend = rownames(coef_path),
+  lty = 1,
+  lwd = 2,
+  bty = "n",
+  cex = 0.9
+)
 ```
+
+As $\lambda$ increases (moving left on the x-axis), both coefficients shrink toward zero. The `male` coefficient shrinks more slowly, indicating it is the stronger predictor of survival. `Age` enters the model quickly but with a smaller effect.
 
 ---
 
-## Lambda Selection via Cross-Validation — Code
+## Lambda Selection via Cross-Validation — Code {.fragile .shrink}
 
-```{r lasso-cv-code, echo=TRUE, eval=FALSE}
+\scriptsize
+
+```{r lasso-cv-code, echo=TRUE, eval=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 set.seed(42)
+# 10-fold CV to select lambda; type.measure="class" minimizes misclassification
 cv_lasso <- cv.glmnet(X_mat, y_vec,
                       family       = "binomial",
                       alpha        = 1,
                       nfolds       = 10,
                       type.measure = "class")
 
-plot(cv_lasso, main = "10-Fold CV: Selecting Optimal Lambda")
-
+# lambda.min: lowest CV error; lambda.1se: most regularized model within 1 SE
 cat("Lambda (min CV error): ", round(cv_lasso$lambda.min, 5), "\n")
 cat("Lambda (1 SE rule):    ", round(cv_lasso$lambda.1se, 5), "\n")
 ```
 
+\normalsize
+
 ---
 
-## Lambda Selection via Cross-Validation — Plot
+## Lambda Selection via Cross-Validation — Plot {.fragile}
 
-```{r lasso-cv-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
-set.seed(42)
-cv_lasso <- cv.glmnet(X_mat, y_vec,
-                      family       = "binomial",
-                      alpha        = 1,
-                      nfolds       = 10,
-                      type.measure = "class")
-plot(cv_lasso, main = "10-Fold CV: Selecting Optimal Lambda")
-cat("Lambda (min CV error): ", round(cv_lasso$lambda.min, 5), "\n")
-cat("Lambda (1 SE rule):    ", round(cv_lasso$lambda.1se, 5), "\n")
+10-fold CV selects $\lambda_{\min}$ as the value minimizing misclassification error, and $\lambda_{\text{1SE}}$ as the largest $\lambda$ within one standard error of that minimum — the more parsimonious choice. Error stabilizes well before the full-model limit, indicating that a small penalty is sufficient here.
+
+```{r lasso-cv-plot, echo=FALSE, eval=TRUE, fig.height=4.1, fig.width=7.2, out.width='0.98\\linewidth', fig.align='center', comment=NA, message=FALSE, warning=FALSE}
+x_cv <- -log(cv_lasso$lambda)
+
+plot(
+  x_cv, cv_lasso$cvm,
+  type = "n",
+  xlab = expression(-log(lambda)),
+  ylab = "Misclassification Error",
+  main = "10-Fold CV: Selecting Optimal Lambda",
+  ylim = range(cv_lasso$cvm - cv_lasso$cvsd, cv_lasso$cvm + cv_lasso$cvsd)
+)
+arrows(
+  x_cv, cv_lasso$cvm - cv_lasso$cvsd,
+  x_cv, cv_lasso$cvm + cv_lasso$cvsd,
+  angle = 90, code = 3, length = 0.02, col = "gray65"
+)
+points(x_cv, cv_lasso$cvm, pch = 19, cex = 0.8)
+lines(x_cv, cv_lasso$cvm, lwd = 1)
+abline(v = -log(cv_lasso$lambda.min), lty = 2, lwd = 2, col = "gray35")
+abline(v = -log(cv_lasso$lambda.1se), lty = 3, lwd = 2, col = "gray35")
+legend(
+  "topright",
+  legend = c("lambda.min", "lambda.1se"),
+  lty = c(2, 3),
+  lwd = 2,
+  col = "gray35",
+  bty = "n",
+  cex = 0.85
+)
 ```
 
 ---
 
-## Lasso Final Coefficients
+## Lasso Final Coefficients {.fragile .shrink}
 
-```{r lasso-coefs, echo=TRUE}
+\scriptsize
+
+```{r lasso-coefs, echo=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 cat("Lasso coefficients at lambda.min:\n")
 round(as.matrix(coef(cv_lasso, s = "lambda.min")), 5)
 
@@ -531,11 +648,15 @@ round(as.matrix(coef(cv_lasso, s = "lambda.1se")), 5)
 
 A dot (.) indicates a coefficient shrunk exactly to zero — that predictor has been removed. In a high-dimensional political dataset, lasso becomes essential for producing a parsimonious model.
 
+\normalsize
+
 ---
 
-## All Four Methods — Code
+## All Four Methods — Code {.fragile .shrink}
 
-```{r full-compare-code, echo=TRUE, eval=FALSE}
+\tiny
+
+```{r full-compare-code, -part1, echo=TRUE, eval=FALSE, size='tiny', comment=NA, message=FALSE, warning=FALSE}
 ggplot(donner, aes(x = Age)) +
   geom_point(aes(y = mystatus, color = Status), alpha = 0.5, size = 1.5) +
   geom_line(aes(y = pi_lpm, group = male), color = "gray30",
@@ -549,14 +670,15 @@ ggplot(donner, aes(x = Age)) +
   labs(title = "Predicted Probabilities: All Four Methods (Donner Data)",
        y = "P(Survived)", x = "Age",
        caption = "Blue = Logistic  |  Red = Probit  |  Gray = OLS  |  Lasso approx. Logistic") +
-  theme_bw()
+  theme_bw(base_size = 12)
 ```
+
+\normalsize
 
 ---
 
-## All Four Methods — Plot
-
-```{r full-compare-plot, echo=FALSE, eval=TRUE, fig.height=5, fig.align='center'}
+## All Four Methods — Plot {.fragile}
+```{r full-compare-plot, echo=FALSE, eval=TRUE, fig.height=4.2, fig.width=7.2, out.width='0.98\\linewidth', fig.align='center', comment=NA, message=FALSE, warning=FALSE}
 ggplot(donner, aes(x = Age)) +
   geom_point(aes(y = mystatus, color = Status), alpha = 0.5, size = 1.5) +
   geom_line(aes(y = pi_lpm, group = male), color = "gray30",
@@ -570,14 +692,60 @@ ggplot(donner, aes(x = Age)) +
   labs(title = "Predicted Probabilities: All Four Methods (Donner Data)",
        y = "P(Survived)", x = "Age",
        caption = "Blue = Logistic  |  Red = Probit  |  Gray = OLS  |  Lasso approx. Logistic") +
-  theme_bw()
+  theme_bw(base_size = 12)
 ```
 
 ---
 
-## Confusion Matrix Comparison — Code
+## Confusion Matrix Comparison — Code {.fragile .shrink}
 
-```{r confusion-code, echo=TRUE, eval=FALSE}
+\tiny
+
+```{r confusion-code, -part1, echo=TRUE, eval=FALSE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
+# classify each observation using a 0.5 probability threshold
+threshold <- 0.5
+
+results <- donner %>%
+  mutate(
+    # convert predicted probabilities to binary class labels
+    pred_lpm    = factor(ifelse(pi_lpm    > threshold, 1, 0)),
+    pred_logit  = factor(ifelse(pi_logit  > threshold, 1, 0)),
+    pred_probit = factor(ifelse(pi_probit > threshold, 1, 0)),
+    # lasso: get response-scale predictions at the CV-selected lambda
+    pred_lasso  = factor(ifelse(
+      predict(cv_lasso, newx = X_mat, s = "lambda.min",
+              type = "response")[, 1] > threshold, 1, 0)),
+    actual = factor(mystatus)
+  )
+```
+\normalsize
+
+---
+
+## Confusion Matrix Comparison — Accuracy Code {.fragile .shrink}
+
+\tiny
+
+```{r confusion-code-part2, echo=TRUE, eval=FALSE, size='tiny', comment=NA, message=FALSE, warning=FALSE}
+# helper: proportion of correctly classified observations
+acc <- function(pred, actual) round(mean(pred == actual), 4)
+
+cat(sprintf("%-20s %s\n", "Method",    "Accuracy"))
+cat(sprintf("%-20s %s\n", "OLS (LPM)", acc(results$pred_lpm,    results$actual)))
+cat(sprintf("%-20s %s\n", "Logistic",  acc(results$pred_logit,  results$actual)))
+cat(sprintf("%-20s %s\n", "Probit",    acc(results$pred_probit, results$actual)))
+cat(sprintf("%-20s %s\n", "Lasso",     acc(results$pred_lasso,  results$actual)))
+```
+
+\normalsize
+
+---
+
+## Confusion Matrix Comparison — Output {.fragile .shrink}
+
+\scriptsize
+
+```{r confusion-output, echo=FALSE, eval=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
 threshold <- 0.5
 
 results <- donner %>%
@@ -600,65 +768,73 @@ cat(sprintf("%-20s %s\n", "Probit",    acc(results$pred_probit, results$actual))
 cat(sprintf("%-20s %s\n", "Lasso",     acc(results$pred_lasso,  results$actual)))
 ```
 
----
+Logistic and probit tie at 77.78%, while OLS and lasso both fall to 75.56%. The bounded probability models classify slightly better here, though on a dataset of 45 observations the difference is small. Probit and logistic are effectively equivalent in predictive accuracy on this data.
 
-## Confusion Matrix Comparison — Output
-
-```{r confusion-output, echo=FALSE, eval=TRUE}
-threshold <- 0.5
-
-results <- donner %>%
-  mutate(
-    pred_lpm    = factor(ifelse(pi_lpm    > threshold, 1, 0)),
-    pred_logit  = factor(ifelse(pi_logit  > threshold, 1, 0)),
-    pred_probit = factor(ifelse(pi_probit > threshold, 1, 0)),
-    pred_lasso  = factor(ifelse(
-      predict(cv_lasso, newx = X_mat, s = "lambda.min",
-              type = "response")[, 1] > threshold, 1, 0)),
-    actual = factor(mystatus)
-  )
-
-acc <- function(pred, actual) round(mean(pred == actual), 4)
-
-cat(sprintf("%-20s %s\n", "Method",    "Accuracy"))
-cat(sprintf("%-20s %s\n", "OLS (LPM)", acc(results$pred_lpm,    results$actual)))
-cat(sprintf("%-20s %s\n", "Logistic",  acc(results$pred_logit,  results$actual)))
-cat(sprintf("%-20s %s\n", "Probit",    acc(results$pred_probit, results$actual)))
-cat(sprintf("%-20s %s\n", "Lasso",     acc(results$pred_lasso,  results$actual)))
-```
+\normalsize
 
 ---
 
-## Probit Confusion Matrix
+## Probit Confusion Matrix {.fragile .shrink}
 
-```{r probit-confmat, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
-confusionMatrix(
+```{r probit-confmat, echo=FALSE, eval=TRUE, size='scriptsize', comment=NA, message=FALSE, warning=FALSE}
+cm <- confusionMatrix(
   data      = results$pred_probit,
   reference = results$actual,
   positive  = "1"
 )
+
+# print the confusion table
+print(cm$table)
+
+# print only the key statistics
+key_stats <- c("Accuracy", "Sensitivity", "Specificity",
+               "Pos Pred Value", "Neg Pred Value", "Kappa")
+cat("\n")
+for (s in key_stats) {
+  if (s == "Accuracy") {
+    cat(sprintf("%-20s : %.4f\n", s, cm$overall["Accuracy"]))
+  } else {
+    cat(sprintf("%-20s : %.4f\n", s, cm$byClass[s]))
+  }
+}
 ```
+
+The probit model is considerably better at identifying deaths (specificity = 0.92) than survivors (sensitivity = 0.60). In the Donner Party data, older males had substantially lower survival odds, and the model captures that pattern well at the majority class. The imbalance between sensitivity and specificity is typical when the outcome is unequally distributed.
 
 ---
 
-## Model Comparison Summary {.smaller}
+## Model Comparison Summary {.fragile .shrink .smaller}
 
-| Criterion | OLS (LPM) | Logistic | **Probit** | Lasso |
+\scriptsize
+
+| Criterion | OLS (LPM) | Logistic | Probit | Lasso |
 |---|---|---|---|---|
-| Predictions in $[0,1]$? | No | Yes | Yes | Yes |
-| Link function | Identity | Logit | **$\Phi^{-1}$ (normal)** | Logit or Probit |
-| Error distribution | Normal | Logistic | **Normal** | Logistic |
+| Predictions in [0, 1]? | No | Yes | Yes | Yes |
+| Link function | Identity | Logit | $\Phi^{-1}$ (normal) | Logit or Probit |
+| Error distribution | Normal | Logistic | Normal | Logistic |
 | Estimation method | OLS (closed form) | MLE (IRLS) | MLE (Fisher Scoring) | MLE + $\ell_1$ penalty |
-| Coefficient interpretation | $\Delta\hat{y}$ | Log-odds / Odds ratio | Marginal effects (AME) | Log-odds (shrunk) |
-| Variable selection? | No | No | No | **Yes** |
+
+\normalsize
+
+---
+
+## Model Comparison Summary {.fragile .shrink .smaller}
+
+\scriptsize
+
+| Criterion | OLS (LPM) | Logistic | Probit | Lasso |
+|---|---|---|---|---|
+| Coefficient interpretation | $\Delta \hat{y}$ | Log-odds / Odds ratio | Marginal effects (AME) | Log-odds (shrunk) |
+| Variable selection? | No | No | No | Yes |
 | Tuning required? | No | No | No | Yes ($\lambda$) |
 | Preferred when... | Never | General / odds needed | Econ, politics, latent variable | Many predictors |
 | Inference (p-values, CIs)? | Yes | Yes | Yes | Not standard |
 
+\normalsize
+
 ---
 
-## Key Takeaways
-
+## Key Takeaways {.shrink}
 - **Linear regression (OLS)** is not appropriate for binary outcomes. Predicted values are not bounded to $[0,1]$ and the model is misspecified.
 
 - **Logistic and probit regression** produce nearly identical predicted probabilities and model fit. Coefficients differ in scale by approximately 1.6x due to differing error distributions, but substantive conclusions are the same.
@@ -671,33 +847,19 @@ confusionMatrix(
 
 - For government and political science applications, probit regression is the standard and appropriate choice.
 
-# Citations | References {.shrink}
+# References
 
-1. **Abbott, M. G.** (n.d.). *ECON 452 Note 15: Marginal Effects in Probit Models*. Queen's University. [https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf](https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf)
+## Citations
 
-2. **Friedman, J., Hastie, T., & Tibshirani, R.** (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). [https://glmnet.stanford.edu](https://glmnet.stanford.edu)
+**Comparison Section (Rohan)**
 
-3. **Hanck, C., Arnold, M., Gerber, A., & Schmelzer, M.** (2020). *11.2 Probit and Logit Regression*. Introduction to Econometrics with R. [https://www.econometrics-with-r.org/11.2-palr.html](https://www.econometrics-with-r.org/11.2-palr.html)
-
-4. **Lucero, C.** (2026). *Lecture 16: Classification & Generalized Linear Models*. CMDA 4654, Virginia Tech.
-
-5. **MetricGate.** (n.d.). *Probit vs. Logit Models for Binary Outcomes*. [https://metricgate.com/blogs/probit-vs-logit-regression/](https://metricgate.com/blogs/probit-vs-logit-regression/)
-
-6. **RStudio.** (n.d.). *RStudio Addins*. [https://rstudio.github.io/rstudioaddins/](https://rstudio.github.io/rstudioaddins/)
-
-7. **Taboga, M.** (2021). *Probit classification model - Maximum likelihood*. Lectures on Probability Theory and Mathematical Statistics. [https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood](https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood)
-
-8. **Urban Institute.** (n.d.). *Logit and Probit Regression*. [https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression](https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression)
-
-9. **Wikimedia Commons.** (2021). *File:Hokkaido.parliamentary.svg*. [https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg](https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg)
-
-10. **Wikipedia contributors.** (2024). *Logistic regression*. Wikipedia, The Free Encyclopedia. [https://en.wikipedia.org/wiki/Logistic_regression](https://en.wikipedia.org/wiki/Logistic_regression)
-
-11. **Xie, Y.** (2024). *Xaringan: Presentation Ninja* [R package]. [https://github.com/yihui/xaringan](https://github.com/yihui/xaringan)
-
-12. **Yanai, Y.** (n.d.). *Logit and Probit Models*. Research Methods 1. [https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
+- Lucero, C. Lecture 16: Classification & Generalized Linear Models. CMDA-4654, Virginia Tech.
+- Urban Institute. Logit and Probit Regression. https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression
+- MetricGate. Probit vs. Logit Models for Binary Outcomes. https://metricgate.com/blogs/probit-vs-logit-regression/
+- Abbott, M.G. ECON 452 Note 15: Marginal Effects in Probit Models. Queen's University. https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf
+- Friedman, J., Hastie, T., Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). https://glmnet.stanford.edu
 - R Packages: `glmnet`, `caret`, `margins`, `Sleuth3`, `dplyr`, `ggplot2`
 
-# Appendix
+## Appendix
 - Probit model - Maximum Likelihood details
 - Convergence tolerance pseudocode logic
