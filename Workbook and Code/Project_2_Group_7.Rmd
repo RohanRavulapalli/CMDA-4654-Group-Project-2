@@ -85,7 +85,9 @@ The link function is the name of the function that distinguishes what type of GL
     - The main difference from Logisitc regression is that logistic regression uses the logistic distribution
     - This makes it useful in studying things like human behavior, psychology, economics, and finance.
 
-# Arnav Slides Start Here
+# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
+
+
 
 # Topic 3 | Implementation {.shrink}
 
