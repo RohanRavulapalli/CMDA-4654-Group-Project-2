@@ -39,23 +39,44 @@ A matrix of 2nd order partial derivatives.  For this case, however, we take the 
 
 ## Link Function 
 
-# Topic 2 | Theoretical and Mathematic Explanation
 
-## The Probit Mechanism
+# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
 
-- **Distribution Assumption**: Assumes an underlying normal distribution for the latent variable.
-- **Inputs**: Utilizes the CDF ($\Phi$) and PDF ($\phi$) of the standard normal distribution.
-- **Predictor Matrix**: Uses a linear predictor $X\beta$, where $X$ contains a column of 1s (intercept) and a column of observations.
-- **Score Calculation**: Calculated using the difference between $y$ variables and the normal PDF, scaled by the ratio of the PDF to the Bernoulli variance.
-- **Iteration**: The system solves for $\beta$ by using the Hessian and Gradient to update variables until convergence (difference < tolerance).
+- **Assumptions**: 
+    - Has all assumptions of a GLM, found in (4)
+    - Assumes a Bernouli Distribution for the y data
+- **Inputs**: 
+    - x: the design matrix, defined as having all 1s in the first column vector, with the rest being vectors for the observed values of the data
+    - y: the target variable, assumed Bernouli Distribution
+    - max_iter: maximum iterations to do
+    - tolerance: the level that is closest to zero that decides if there has been a "convergence" to the $\hat B$
+    - verbose: used for debugging, prints the steps and beta values
+    - *note* some of these inputs are handled by glm differently, like the design matrix $X$ is created by just adding a column of 1s to the dataframe passed in as x 
+      
+# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
+
+- **Function**:
+  - initialize beta to be a vector of 0s, of length m (number of x columns)
+  - for(i in max_iter)
+    - get the linear predictor, eta
+    - calculate the PDF and CDF of the predictor assuming the normal distribution, defined as $\hat p$$\hat q$
+    - calculate the ratio of the CDF to the bernouli variance of the PDF $\hat{q} / (\hat{p}(1 -\hat{p}))$
+    - get a score vector with the previous ratio in the form $\text{ratio} \cdot (\hat{y} - \hat{p})$
+    - calculate the gradient, g, defined by $X^T \cdot \text{score}$
+    - now, we calculate the Weight matrix of the form $\frac{\hat{q}}{\hat p (1 - \hat p)}$ note the bernouli distribution in the denominator
+    - using the Weight vector, we calculate the negative expected Hessian, $H$, this is written as $-(X^T \cdot W)$
+    - finally, a copy of the current beta iteration is made, and the next iteration of beta becomes $\hat B = \hat B - (H^{-1}g)$ where g is the gradient
+    - then the tolerance check is done, checking the squared sum of $\hat B_{new} - \hat B_{old}$, or $||B_{new} - B_{old}||^2$ if this is less than our tolerance, we have converged
+    
+# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
+- **Usage**:
+    - Probit has many uses, but most of them are in econometrics and Government.  The closest model in terms of use case is Logistic, as they both follow bernouli variables.  
+    - The main difference from Logisitc regression is that logistic regression uses the logistic distribution
+    - This makes it useful in studying things like human behavior, psychology, economics, and finance.
 
 
 
-# Topic 2 | Theoretical and Mathematic Explanation
-
-
-
-# Topic 4 | Implementation {.shrink}
+# Topic 3 | Implementation {.shrink}
 
 ```{r echo=TRUE}
 myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
@@ -114,7 +135,7 @@ We used a method similar to Newton Raphson, but rather than use the Hessian, the
 - These methods can be shown to be mathematically the same(7)
 ## Testing
 
-# Topic 5 | Comparison to Other Models
+# Topic 4 | Comparison to Other Models
 
 ```{r topic5-render-options, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(
