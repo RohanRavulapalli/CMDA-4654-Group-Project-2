@@ -8,6 +8,13 @@ output:
     widescreen: true
     smaller: true
 subtitle: Applications in Government & Politics
+header-includes:
+   - |
+     \setbeamertemplate{footline}{
+       \hfill
+       \usebeamerfont{page number in head/foot}
+       \insertframenumber\,/\,\inserttotalframenumber\kern1em\vskip2pt
+     }
 ---
 
 ## Table of Contents
