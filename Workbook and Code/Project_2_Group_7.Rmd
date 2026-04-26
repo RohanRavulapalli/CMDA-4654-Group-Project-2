@@ -24,7 +24,7 @@ subtitle: Applications in Government & Politics
 Used for modeling binary outcomes. The variance is defined as $\text{Var}(X) = E[X^2] - (E[X])^2 = p - p^2 = p(1 - p)$ 
 
 ## General Linearized Model
-A *General Linearized Model* is a model that applies a linear function to a dataset, with the general rules of mapping the input to the output y, and mapping it according to a **Link Function**.
+A *General Linearized Model* (GLM) is a model that applies a linear function to a dataset, with the general rules of mapping the input to the output y, and mapping it according to a **Link Function**.
 
 # Topic 1 | Prerequisite Knowledge
 
@@ -37,7 +37,11 @@ A matrix of 2nd order partial derivatives.  For this case, however, we take the 
 
 # Topic 1 | Prerequisite Knowledge
 
-## Link Function 
+## Link Function
+The link function is the name of the function that distinguishes what type of GLM a specific Linear Model is.  For the case of probit, the inverse of the CDF of the normal distribution is used as the link function (also known as the probit function).  For Logistic, the logit function is used, which is the inverse logistic function.  
+
+- Logit: $\eta(\mu) = \ln\left( \frac{\mu}{1 - \mu} \right)$
+- Probit: $\eta(\mu) = \Phi^{-1}(\mu)$
 
 
 # Topic 2 | Theoretical and Mathematic Explanation {.shrink}
@@ -872,17 +876,38 @@ The probit model is considerably better at identifying deaths (specificity = 0.9
 
 - For government and political science applications, probit regression is the standard and appropriate choice.
 
-# References
+# References {.shrink}
 
 ## Citations
 
-**Comparison Section (Rohan)**
+1. **Abbott, M. G.** (n.d.). *ECON 452 Note 15: Marginal Effects in Probit Models*. Queen's University. [https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf](https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf)
+2. **Friedman, J., Hastie, T., & Tibshirani, R.** (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). [https://glmnet.stanford.edu](https://glmnet.stanford.edu)
+3. **Hanck, C., Arnold, M., Gerber, A., & Schmelzer, M.** (2020). *11.2 Probit and Logit Regression*. Introduction to Econometrics with R. [https://www.econometrics-with-r.org/11.2-palr.html](https://www.econometrics-with-r.org/11.2-palr.html
 
-- Lucero, C. Lecture 16: Classification & Generalized Linear Models. CMDA-4654, Virginia Tech.
-- Urban Institute. Logit and Probit Regression. https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression
-- MetricGate. Probit vs. Logit Models for Binary Outcomes. https://metricgate.com/blogs/probit-vs-logit-regression/
-- Abbott, M.G. ECON 452 Note 15: Marginal Effects in Probit Models. Queen's University. https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf
-- Friedman, J., Hastie, T., Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). https://glmnet.stanford.edu
+4. **Lucero, C.** (2026). *Lecture 16: Classification & Generalized Linear Models*. CMDA 4654, Virginia Tech.
+
+5. **MetricGate.** (n.d.). *Probit vs. Logit Models for Binary Outcomes*. [https://metricgate.com/blogs/probit-vs-logit-regression/](https://metricgate.com/blogs/probit-vs-logit-regression/)
+
+# References {.shrink}
+
+6. **RStudio.** (n.d.). *RStudio Addins*. [https://rstudio.github.io/rstudioaddins/](https://rstudio.github.io/rstudioaddins/)
+
+7. **Taboga, M.** (2021). *Probit classification model - Maximum likelihood*. Lectures on Probability Theory and Mathematical Statistics. [https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood](https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood)
+
+8. **Urban Institute.** (n.d.). *Logit and Probit Regression*. [https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression](https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression)
+
+9. **Wikimedia Commons.** (2021). *File:Hokkaido.parliamentary.svg*. [https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg](https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg)
+
+10. **Wikipedia contributors.** (2024). *Logistic regression*. Wikipedia, The Free Encyclopedia. [https://en.wikipedia.org/wiki/Logistic_regression](https://en.wikipedia.org/wiki/Logistic_regression)
+
+# References {.shrink}
+
+11. **Xie, Y.** (2024). *Xaringan: Presentation Ninja* [R package]. [https://github.com/yihui/xaringan](https://github.com/yihui/xaringan)
+
+12. **Yanai, Y.** (n.d.). *Logit and Probit Models*. Research Methods 1. [https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
+
+## Packages
+
 - R Packages: `glmnet`, `caret`, `margins`, `Sleuth3`, `dplyr`, `ggplot2`
 
 ## Appendix
