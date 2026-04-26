@@ -38,8 +38,6 @@ header-includes:
 * **The 1958 Landmark Paper**
     * *"Estimation of Relationships for Limited Dependent Variables"*
 
-# Estimation of Relationships for Limited Dependent Variables
-
 # Topic 1 | Prerequisite Knowledge
 
 ## Bernoulli Distribution Variance
