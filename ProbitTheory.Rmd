@@ -157,7 +157,7 @@ eta <- X %*% beta
 print(head(eta))
 ```
 
-All values = 0 → model has no information yet
+All values = 0 - model has no information yet
 
 ##New Slide
 
@@ -173,9 +173,9 @@ print(head(qhat))
 
 Interpretation:
 
-\- phat = 0.5 → model is completely uncertain
+\- phat = 0.5 - model is completely uncertain
 
-\- qhat ≈ 0.399 → maximum sensitivity to change
+\- qhat ≈ 0.399 - maximum sensitivity to change
 
 ##New Slide
 
@@ -192,13 +192,13 @@ print(head(score))
 print(g)
 ```
 
-Ratio ≈ 1.596 → model is responsive to errors
+Ratio ≈ 1.596 - model is responsive to errors
 
-Positive Score → model underpredicts (needs to increase probability)
+Positive Score - model underpredicts (needs to increase probability)
 
-Negative Score → model overpredicts (needs to decrease probability)Interpretation:
+Negative Score - model overpredicts (needs to decrease probability)Interpretation:
 
-\- Beta0 gradient: -4.787307 → overall adjustment to baseline i.e. model less likely to be manual (1)
+\- Beta0 gradient: -4.787307 - overall adjustment to baseline i.e. model less likely to be manual (1)
 
 ##New Slide
 
@@ -213,9 +213,9 @@ print(head(w))
 print(H)
 ```
 
-Weight Interpretation: All weights equal → every observation equally important at start
+Weight Interpretation: All weights equal - every observation equally important at start
 
-Hessian Interpretation: - Large magnitude values → strong curvature → mpg is influential
+Hessian Interpretation: - Large magnitude values - strong curvature - mpg is influential
 
 ##New Slide
 
@@ -229,9 +229,9 @@ print(beta_new)
 
 Interpretation:
 
-\- Beta0 is negative → baseline probability of manual is low
+\- Beta0 is negative - baseline probability of manual is low
 
-\- Beta1 is positive → higher mpg increases probability of manual
+\- Beta1 is positive - higher mpg increases probability of manual
 
 The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
 
