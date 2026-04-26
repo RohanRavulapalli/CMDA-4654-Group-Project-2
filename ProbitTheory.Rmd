@@ -11,6 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Probit Regression Theory
 
+```{r, echo=FALSE}
+if (!require(margins)) install.packages("margins")
+library(margins)
+```
+
+##New Slide
+
 ### Step 1: Linear Predictor
 
 $$
@@ -22,6 +29,8 @@ eta <- X %*% beta
 ```
 
 The linear predictor is passed through a standard normal CDF to convert it to a probability
+
+##New Slide
 
 ### Step 2: Linear Predictor –\> Probability
 
@@ -36,15 +45,13 @@ qhat <- dnorm(eta)
 
 Using the linear predictor, $\hat{p}_i = \Phi(\eta_i)$ converts it into a probability between 0 and 1 for $Y_i = 1$, while $\hat{q}_i = \phi(\eta_i)$ indicates the rate of change of that probability with respect to the linear predictor at that point.
 
+##New Slide
+
 ### Step 3: Score Vector
 
 $$
 s(\beta) = \sum_{i=1}^{N} \frac{\phi(x_i^\top \beta)}{\Phi(x_i^\top \beta)\left(1 - \Phi(x_i^\top \beta)\right)} \left(y_i - \Phi(x_i^\top \beta)\right) x_i
 $$
-
-The score function tells us in which direction should the coefficients $\beta$ to increase the probability of observing the data (dependent variable) given the parameters (independent variables).
-
-The score function accomplishes that with three components.
 
 $$
 \frac{\phi(\eta_i)}{\Phi(\eta_i)\big(1 - \Phi(\eta_i)\big)}
@@ -52,11 +59,23 @@ $$
 \times x_{ij}
 $$
 
-**Ratio:** tells us how sensitive the model is at that point $\eta_i = x_i^\top \beta$. At the start of the estimation, the coefficients $\beta$ are initialized to 0. At this point, the predicted probability of all events is 0.5, and the ratio takes a moderate value, meaning the model adjusts to errors and is positioned to learn.
+The score function tells us in which direction should the coefficients $\beta$ to increase the probability of observing the data (dependent variable) given the parameters (independent variables).
+
+```{r, eval = FALSE}
+ratio <- qhat / (phat * (1 - phat))
+score <- (y - phat) * ratio
+g     <- t(X) %*% score
+```
+
+##New Slide
+
+The score function has three components.
+
+**Ratio:** tells us how sensitive the model is at that point $\eta_i = x_i^\top \beta$. At the start of the estimation, the coefficients $\beta$ are initialized to 0. At this point, the predicted probability of all events is 0.5, meaning the model adjusts to errors and is positioned to learn.
 
 **Residual:** compares what actually happened $y_i$ = 0 or 1 with the predicted probability. If it is positive, the model predicted too low. If it is negative, the model predicted too high.
 
-**Gradient:** is obtained by differentiating the linear predictor with respect to the coefficients. This determines how changes in each coefficient affect the prediction. The gradient tells the model both the **direction** (increase or decrease a coefficient) and the **magnitude** of adjustment needed so that predicted probabilities better align with the observed data.
+**Gradient:** tells the model both the **direction** (increase or decrease a coefficient) and the **magnitude** of adjustment needed so that predicted probabilities better align with the observed data.
 
 $$
 \eta_i = x_i^\top \beta
@@ -66,11 +85,7 @@ $$
 \frac{\partial \eta_i}{\partial \beta_j} = x_{ij}
 $$
 
-```{r, eval = FALSE}
-ratio <- qhat / (phat * (1 - phat))
-score <- (y - phat) * ratio
-g     <- t(X) %*% score
-```
+##New Slide
 
 ### Step 4: Hessian
 
@@ -88,6 +103,8 @@ $$
 w <- (qhat^2) / (phat * (1 - phat))
 H <- -t(X) %*% (X * as.vector(w))
 ```
+
+##New Slide
 
 ### Step 5: Newton-Raphson Update
 
@@ -113,9 +130,11 @@ beta <- beta - solve(H, g)
 
 The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
 
+##New Slide
+
 ## MtCars Implementation
 
-What is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission?
+**Research Question:** What is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission?
 
 ```{r}
 data(mtcars)
@@ -126,147 +145,158 @@ y <- mtcars$am
 beta <- c(0, 0)   # initial coefficients
 ```
 
-$$
-X =\begin{bmatrix}1 & 21.0 \\1 & 21.0 \\1 & 22.8 \\1 & 21.4 \\1 & 18.7 \\1 & 18.1 \\1 & 14.3 \\1 & 24.4 \\1 & 22.8 \\1 & 19.2 \\1 & 17.8 \\1 & 16.4 \\1 & 17.3 \\1 & 15.2 \\1 & 10.4 \\1 & 10.4 \\1 & 14.7 \\1 & 32.4 \\1 & 30.4 \\1 & 33.9 \\1 & 21.5 \\1 & 15.5 \\1 & 15.2 \\1 & 13.3 \\1 & 19.2 \\1 & 27.3 \\1 & 26.0 \\1 & 30.4 \\1 & 15.8 \\1 & 19.7 \\1 & 15.0 \\1 & 21.4\end{bmatrix}
-$$
+We initialized the coefficients to zero, representing a neutral starting point for the regression process.
 
-$$
-\beta = \begin{bmatrix} \beta_0 \\ \beta_1 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
-$$
+##New Slide
 
 ### Step 1: Linear Predictor
 
-```{r}
+```{r, comment=""}
 eta <- X %*% beta
 
-cat("Step 1: Linear Predictor (eta)\n")
 print(head(eta))
-cat("\nAll values = 0 → model has no information yet\n\n")
 ```
+
+All values = 0 → model has no information yet
+
+##New Slide
 
 ### Step 2: Linear Predictor –\> Probability
 
-```{r}
+```{r, comment=""}
 phat <- pnorm(eta)
 qhat <- dnorm(eta)
 
-cat("Step 2:(phat)\n")
 print(head(phat))
-
-cat("\nStep 2:(qhat)\n")
 print(head(qhat))
-
-cat("\nInterpretation:\n")
-cat("- phat = 0.5 → model is completely uncertain\n")
-cat("- qhat ≈ 0.399 → maximum sensitivity to change\n\n")
 ```
+
+Interpretation:
+
+\- phat = 0.5 → model is completely uncertain
+
+\- qhat ≈ 0.399 → maximum sensitivity to change
+
+##New Slide
 
 ### Step 3: Score Vector
 
-```{r}
+```{r, comment=""}
 ratio <- qhat / (phat * (1 - phat))
 score <- (y - phat) * ratio
 g     <- t(X) %*% score
 
-cat("Step 3: Ratio\n")
 print(head(ratio))
-
-cat("\nInterpretation: Ratio ≈ 1.596 → model is responsive to errors\n\n")
-
-cat("Step 3: Score (first 6 observations)\n")
 print(head(score))
 
-cat("\nInterpretation:\n")
-cat("- Positive → model underpredicts (needs to increase probability)\n")
-cat("- Negative → model overpredicts (needs to decrease probability)\n\n")
-
-cat("Step 3: Gradient\n")
 print(g)
-
-cat("\nInterpretation:\n")
-cat("- Beta0 gradient:", g[1], "→ overall adjustment to baseline i.e. model less likely to be manual (1)\n")
-cat("- Beta1 gradient:", g[2], "→ how mpg should influence prediction i.e. Positive Beta1 gradient indicates manual cars more likely to have higher MPH\n\n")
 ```
+
+Ratio ≈ 1.596 → model is responsive to errors
+
+Positive Score → model underpredicts (needs to increase probability)
+
+Negative Score → model overpredicts (needs to decrease probability)Interpretation:
+
+\- Beta0 gradient: -4.787307 → overall adjustment to baseline i.e. model less likely to be manual (1)
+
+##New Slide
 
 ### Step 4: Hessian
 
-```{r}
+```{r, comment=""}
 w <- (qhat^2) / (phat * (1 - phat))
 H <- -t(X) %*% (X * as.vector(w))
 
-cat("Step 4: Weights (first 6)\n")
 print(head(w))
 
-cat("\nInterpretation: All weights equal → every observation equally important at start\n\n")
-
-cat("Step 4: Hessian Matrix\n")
 print(H)
-
-cat("\nInterpretation:\n")
-cat("- Large magnitude values → strong curvature\n")
-cat("- mpg term dominates → mpg is influential\n\n")
 ```
+
+Weight Interpretation: All weights equal → every observation equally important at start
+
+Hessian Interpretation: - Large magnitude values → strong curvature → mpg is influential
+
+##New Slide
 
 ### Step 5: Newton-Raphson Update
 
-```{r}
+```{r, comment=""}
 beta_new <- beta - solve(H, g)
 
-cat("Step 5: Updated Beta\n")
 print(beta_new)
-
-cat("\nInterpretation:\n")
-cat("- Beta0 is negative → baseline probability of manual is low\n")
-cat("- Beta1 is positive → higher mpg increases probability of manual\n")
 ```
+
+Interpretation:
+
+\- Beta0 is negative → baseline probability of manual is low
+
+\- Beta1 is positive → higher mpg increases probability of manual
 
 The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
 
+##New Slide
+
 #### Our Implementation of Probit Regresion:
 
-```{r}
-X <- model.matrix(am ~ mpg, data = mtcars)
-y <- mtcars$am
+```{r, comment=""}
+myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
 
-beta <- c(0, 0)
-tol  <- 1e-8
-
-converged <- FALSE
-i <- 0
-
-while (!converged) {
-  i <- i + 1
+  m = ncol(X)
+  beta <- rep(0, m)
   
-  eta <- X %*% beta
-  phat <- pnorm(eta)
-  qhat <- dnorm(eta)
-  
-  ratio <- qhat / (phat * (1 - phat))
-  score <- (y - phat) * ratio
-  g     <- t(X) %*% score
-  
-  w <- (qhat^2) / (phat * (1 - phat))
-  H <- -t(X) %*% (X * as.vector(w))
-  
-  beta <- beta - solve(H, g)
-  
-  if (max(abs(g)) < tol) {
-    converged <- TRUE
-    cat("Converged at iteration", i, "\n")
-    cat("Final Beta0 =", beta[1], "\n")
-    cat("Final Beta1 =", beta[2], "\n")
+  for (i in 1:max_iter) {
+    
+    eta <- X %*% beta
+    
+    phat <- pnorm(eta)
+    qhat <- dnorm(eta)
+    
+    ratio <- qhat / (phat * (1 - phat))
+    score <- (y - phat) * ratio
+    g <- t(X) %*% score
+    
+    w <- (qhat^2) / (phat * (1 - phat))
+    H <- -t(X) %*% (X * as.vector(w))
+    
+    copy_beta = beta
+    beta <- beta - solve(H, g)
+    
+    if (verbose){
+      cat("Iteration", i, ":\n")
+      j=1
+      for (b in beta){
+        cat("Beta", j, " = ", beta[j], "\n")
+        j=j+1
+      }
+    }
+    if ((sum(beta - copy_beta)^2) < tolerance) {
+        return(beta)
+        break
+      }
   }
 }
+
+X <- model.matrix(am ~ mpg, data = mtcars)
+y <- mtcars$am
+myprobit(X,y,32, 0.00009, FALSE)
+
 ```
 
-```{r}
+##New Slide: Verifying with R's in-built function
+
+```{r, comment=""}
 modell <- coef(glm(am ~ mpg, data = mtcars, family = binomial(link="probit")))
 modell
 ```
 
-R's in-built function confirms the results from our implementation to four decimal places. The intercept (−3.91) represents the baseline latent tendency for a car to be manual when MPG is zero; it is strongly negative, meaning the model starts from a situation where automatic transmission is much more likely before considering MPG. The MPG coefficient (0.182) means that each additional unit of MPG increases the latent “manual likelihood” score, shifting the probability toward a manual transmission. Together, they imply that higher-MPG cars are increasingly likely to be manual, but the actual probability depends on how this latent score is transformed through the probit model’s normal CDF.
+\- Intercept **(−3.91)** represents the baseline latent tendency for a car to be manual when MPG is zero; it is strongly negative, meaning the model starts from a situation where automatic transmission is much more likely before considering MPG.
 
-```{r}
+\- The MPG coefficient **(0.182)** means that each additional unit of MPG increases the latent “manual likelihood” score, shifting the probability toward a manual transmission.
+
+##New Slide
+
+```{r, echo=FALSE}
 model <- glm(am ~ mpg, 
              data = mtcars, 
              family = binomial(link = "probit"))
@@ -286,21 +316,21 @@ lines(mpg_seq, pred_prob, lwd = 2)
 
 There is a positive relationship between MPG and the probability that a car has a manual transmission: as fuel efficiency increases, the likelihood that a car is manual increases.
 
-The probability that a car has a manual transmission increases smoothly with MPG, with the most rapid increase occurring around 20 MPG, where the likelihood transitions from mostly automatic to mostly manual.
+##New Slide
 
-margins() takes the probit coefficients and converts them into marginal effects on probability, which are actually interpretable.
-
-```{r}
+```{r, comment=""}
 library(margins)
 mfx <- margins(model)
 summary(mfx)
 ```
 
-To answer our research question, what is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission, for each 1 MPG increase, the probability that a car is manual increases by about 4.7 percentage points (on average).
+To answer our research question, what is the relationship between a car’s fuel efficiency (MPG) and the probability that it has a manual transmission, for each 1 MPG increase, the probability that a car is manual increases by about 4.7 percentage points (on average).\
+
+##NewSlide
 
 ### Extension
 
-When extending the probit model to include multiple predictors, the structure of the model remains unchanged, but the linear predictor becomes a combination of multiple variables:
+When extending the probit model to include multiple predictors, the structure of the model remains unchanged:
 
 $$
 P(y=1) = \Phi(\beta_0 + \beta_1 \cdot \text{mpg} + \beta_2 \cdot \text{wt})
@@ -310,22 +340,24 @@ Each coefficient represents a partial effect, meaning that the effect of one var
 
 If we add weight to the model, the MPG coefficient captures its effect on transmission probability while holding weight constant—meaning it reflects MPG’s independent contribution rather than differences driven by weight.
 
+##New Slide
+
 ### Government/Politics Dataset
 
-Like we mentioned earlier in the presentation, probit regression is excellent for modeling situations where the result is binary. One good example is voting, where there are two possible outcomes: voted or not voted.
-
-We considered the research question, to what extent do socioeconomic resources, specifically age, education, and income, predict voter turnout in American national elections?
+**Research question**: to what extent do socioeconomic factors, specifically age, education, and income, predict voter turnout in American national elections?
 
 We used a dataset provided by the American National Election Studies, detailing whether individuals voted or not in the 2024 election. The dataset had over 44 variables it considered, such as occupation and religion.
 
+##New Slide
+
 Translating information from the codebook, we considered the variables below.
 
-![The variable, VCF0009z, considers if a survey accidentally talks to too many men and not enough women, the women’s answers are given a higher **weight** (they count for more than one person) and the men’s answers are given a lower **weight** (they count for less than one person). This balances the data so the final results look like a perfect "mini-version" of the real world rather than just a reflection of who happened to answer the phone.](images/clipboard-593014418.png)
+![VCF0009z, considers if a survey accidentally talks to too many men and not enough women, the women’s answers are given a higher **weight** (they count for more than one person) and the men’s answers are given a lower **weight** (they count for less than one person).](images/clipboard-593014418.png)
 
 We cleaned the dataset to only use the variables above
 
-```{r}
-df <- read.csv("https://drive.google.com/uc?export=download&id=12eUO5FT7h3KXgxrlCy3UwfnxdOWTcJvT", stringsAsFactors = FALSE)
+```{r, echo=FALSE}
+df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
 
 
 vars <- c("VCF0702",  # turnout
@@ -370,25 +402,23 @@ df_clean$weight <- df_clean$VCF0009z
 df_clean <- na.omit(df_clean)
 ```
 
+##New Slide
+
 #### Exploratory Data Analysis
 
-```{r}
+```{r, comment=""}
 chisq.test(table(df_clean$vote, df_clean$education))
 
 chisq.test(table(df_clean$vote, df_clean$party_id))
 ```
 
-Both chi-squared tests show that turnout is **strongly related** to education and party identification. For education, the test statistic is very large $X^2 = 3910.4$ with a p-value effectively equal to zero, meaning we can confidently reject the idea that voting behavior is independent of education level. Similarly, for party identification, the chi-squared test $X^2 = 3694.5$ also produces a near-zero p-value, indicating a strong relationship between party ID and turnout.
+\- For education, the test statistic is very large $X^2 = 3910.4$ with a p-value effectively equal to zero. We can confidently reject the idea that voting behavior is independent of education level.
 
-In simple terms, this means that people with different education levels and different political affiliations vote at different rates. Because these variables are clearly associated with turnout, they are important predictors and should be included in the model.
+\- For party identification, the chi-squared test $X^2 = 3694.5$ also produces a near-zero p-value, indicating a strong relationship between party ID and turnout.
 
-**Age** is included because older individuals are generally more likely to vote.
+##New Slide
 
-**Income** is included because individuals with higher socioeconomic status often have more resources, time, and access to information, all of which increase the likelihood of voting.
-
-**Political interest** is a direct measure of engagement with politics, and individuals who report higher levels of interest are much more likely to participate in elections.
-
-```{r}
+```{r, comment="", echo=FALSE}
 model1 <- glm(vote ~ age + education + income + party_id + interest,
               data = df_clean,
               weights = weight,
@@ -397,25 +427,107 @@ model1 <- glm(vote ~ age + education + income + party_id + interest,
 summary(model1)
 ```
 
-```{r}
-if (!require(margins)) install.packages("margins")
+Latent scores.
 
-library(margins)
+##New Slide
 
+```{r, comment=""}
 mfx <- margins(model1)
 summary(mfx)
 ```
 
-The results from the probit model show that socioeconomic resources—age, education, and income—are all **strong and statistically significant predictors of voter turnout** in American national elections.
+The average marginal effect (AME) of 0.0039 means that each additional year of age increases the probability of voting by about **0.4 percentage points**, holding other factors constant. This suggests that older individuals are more likely to vote.
 
-First, **age** has a positive effect on turnout. The average marginal effect (AME) of 0.0039 means that each additional year of age increases the probability of voting by about **0.4 percentage points**, holding other factors constant. This suggests that older individuals are more likely to vote.
+Compared to individuals with a college degree (the baseline group), those with lower levels of education are significantly less likely to vote. For example, having only a high school education decreases the probability of voting by about **15.5 percentage points**
 
-Second, **education** has a large and meaningful impact. Compared to individuals with a college degree (the baseline group), those with lower levels of education are significantly less likely to vote. For example, having only a high school education decreases the probability of voting by about **15.5 percentage points**, while having less than a high school education decreases it by about **24.5 percentage points**. This indicates that education is one of the strongest predictors of turnout.
+The AME of 0.0381 shows that moving up one income category increases the probability of voting by about **3.8 percentage points**.
 
-Third, **income** also positively affects turnout. The AME of 0.0381 shows that moving up one income category increases the probability of voting by about **3.8 percentage points**, suggesting that individuals with greater financial resources are more likely to participate in elections.
+Compared to independents, individuals who identify with a political party, especially strong partisans, are substantially more likely to vote. For example, strong Democrats and strong Republicans are about **20–22 percentage points more likely** to vote than independents.
 
-**Party identification and political interest** also have strong and significant effects on voter turnout. Compared to independents, individuals who identify with a political party, especially strong partisans, are substantially more likely to vote. For example, strong Democrats and strong Republicans are about **20–22 percentage points more likely** to vote than independents. This suggests that partisan attachment increases motivation to participate in elections.
-
-Similarly, **political interest** has one of the largest effects in the model. The average marginal effect of 0.1076 indicates that moving up one level of interest increases the probability of voting by about **10.8 percentage points**. This means that individuals who are more engaged and attentive to politics are much more likely to turn out.
+Similarly, **political interest** has one of the largest effects in the model. The average marginal effect of 0.1076 indicates that moving up one level of interest increases the probability of voting by about **10.8 percentage points**.
 
 Overall, while socioeconomic resources are important, these results show that political engagement and partisan identity are equally powerful predictors of turnout.
+
+## Appendix Code
+
+```{r, eval=FALSE}
+model <- glm(am ~ mpg, 
+             data = mtcars, 
+             family = binomial(link = "probit"))
+
+mpg_seq <- seq(min(mtcars$mpg), max(mtcars$mpg), length.out = 100)
+
+pred_prob <- predict(model, newdata = data.frame(mpg = mpg_seq), type = "response")
+
+plot(mtcars$mpg, mtcars$am,
+     xlab = "MPG",
+     ylab = "Probability of Manual (am = 1)",
+     main = "Probit Regression: MPG vs Manual Transmission",
+     pch = 16)
+
+lines(mpg_seq, pred_prob, lwd = 2)
+```
+
+```{r, eval=TRUE}
+df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+
+
+vars <- c("VCF0702",  # turnout
+          "VCF0101",  # age
+          "VCF0110",  # education
+          "VCF0114",  # income
+          "VCF0301",  # party ID
+          "VCF0310",  # political interest
+          "VCF0009z") # weights
+
+df_clean <- df[, vars]
+
+df_clean[df_clean < 0] <- NA
+
+# Dependent Variable: Turnout (1 = voted, 0 = did not vote)
+df_clean$vote <- ifelse(df_clean$VCF0702 == 2, 1,
+                  ifelse(df_clean$VCF0702 == 1, 0, NA))
+
+df_clean$age <- as.numeric(df_clean$VCF0101)
+
+df_clean$education <- factor(df_clean$VCF0110,
+                            levels = c(4,3,2,1),
+                            labels = c("CollegePlus", "SomeCollege", "HighSchool", "LessHS"))
+
+df_clean$income <- as.numeric(df_clean$VCF0114)
+
+df_clean$party_id <- factor(df_clean$VCF0301,
+                           levels = c(4,3,5,2,6,1,7),
+                           labels = c("Independent",
+                                      "IndLeanDem",
+                                      "IndLeanRep",
+                                      "WeakDem",
+                                      "WeakRep",
+                                      "StrongDem",
+                                      "StrongRep"))
+
+df_clean$interest <- as.numeric(df_clean$VCF0310)
+
+df_clean$weight <- df_clean$VCF0009z
+
+
+df_clean <- na.omit(df_clean)
+```
+
+```{r, eval=FALSE}
+model <- glm(am ~ mpg, 
+             data = mtcars, 
+             family = binomial(link = "probit"))
+
+mpg_seq <- seq(min(mtcars$mpg), max(mtcars$mpg), length.out = 100)
+
+pred_prob <- predict(model, newdata = data.frame(mpg = mpg_seq), type = "response")
+
+plot(mtcars$mpg, mtcars$am,
+     xlab = "MPG",
+     ylab = "Probability of Manual (am = 1)",
+     main = "Probit Regression: MPG vs Manual Transmission",
+     pch = 16)
+
+lines(mpg_seq, pred_prob, lwd = 2)
+```
