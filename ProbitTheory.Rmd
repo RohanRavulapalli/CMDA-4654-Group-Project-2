@@ -357,7 +357,7 @@ Translating information from the codebook, we considered the variables below.
 We cleaned the dataset to only use the variables above
 
 ```{r, echo=FALSE}
-df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+df <- read.csv("anes_cleaned.csv", stringsAsFactors = FALSE)
 
 
 vars <- c("VCF0702",  # turnout
@@ -468,8 +468,8 @@ plot(mtcars$mpg, mtcars$am,
 lines(mpg_seq, pred_prob, lwd = 2)
 ```
 
-```{r, eval=TRUE}
-df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+```{r, eval=FALSE}
+df <- read.csv("anes_cleaned.csv", stringsAsFactors = FALSE)
 
 
 vars <- c("VCF0702",  # turnout
