@@ -430,10 +430,14 @@ Latent scores.
 
 # Research Conclusion {.shrink}
 
+\footnotesize
+
 ```{r, comment=""}
 mfx <- margins(model1)
 summary(mfx)
 ```
+
+\normalsize
 
 # Research Conclusion {.shrink}
 
@@ -1221,11 +1225,11 @@ The probit model is considerably better at identifying deaths (specificity = 0.9
 
 14. **Yanai, Y.** (n.d.). *Logit and Probit Models*. Research Methods 1. [https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
 
-## Packages
+# Packages {.shrink}
 
 - R Packages: `glmnet`, `caret`, `margins`, `Sleuth3`, `dplyr`, `ggplot2`
 
-## Appendix
+# Appendix {.shrink}
 
 ```{r, eval=FALSE}
 model <- glm(am ~ mpg, 
