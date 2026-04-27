@@ -187,7 +187,7 @@ it to a probability
 \#New Slide
 \end{block}
 
-\begin{block}{Step 2: Linear Predictor -- Probability}
+\begin{block}{Step 2: Linear Predictor --\textgreater{} Probability}
 \protect\phantomsection\label{step-2-linear-predictor-probability}
 \[
 \hat{p}_i = \Phi(\eta_i) \quad \text{and} \quad \hat{q}_i = \phi(\eta_i)
@@ -236,23 +236,20 @@ variable) given the parameters (independent variables).
 
 The score function has three components.
 
-\begin{itemize}
-\item
-  \textbf{Ratio:} tells us how sensitive the model is at that point
-  \(\eta_i = x_i^\top \beta\). At the start of the estimation, the
-  coefficients \(\beta\) are initialized to 0. At this point, the
-  predicted probability of all events is 0.5, meaning the model adjusts
-  to errors and is positioned to learn.
-\item
-  \textbf{Residual:} compares what actually happened \(y_i\) = 0 or 1
-  with the predicted probability. If it is positive, the model predicted
-  too low. If it is negative, the model predicted too high.
-\item
-  \textbf{Gradient:} tells the model both the \textbf{direction}
-  (increase or decrease a coefficient) and the - \textbf{magnitude} of
-  adjustment needed so that predicted probabilities better align with
-  the observed data.
-\end{itemize}
+\textbf{Ratio:} tells us how sensitive the model is at that point
+\(\eta_i = x_i^\top \beta\). At the start of the estimation, the
+coefficients \(\beta\) are initialized to 0. At this point, the
+predicted probability of all events is 0.5, meaning the model adjusts to
+errors and is positioned to learn.
+
+\textbf{Residual:} compares what actually happened \(y_i\) = 0 or 1 with
+the predicted probability. If it is positive, the model predicted too
+low. If it is negative, the model predicted too high.
+
+\textbf{Gradient:} tells the model both the \textbf{direction} (increase
+or decrease a coefficient) and the \textbf{magnitude} of adjustment
+needed so that predicted probabilities better align with the observed
+data.
 
 \[
 \eta_i = x_i^\top \beta
@@ -371,7 +368,7 @@ Hornet Sportabout    0
 Valiant              0
 \end{verbatim}
 
-All values = 0 → model has no information yet
+All values = 0 - model has no information yet
 
 \#New Slide
 \end{block}
@@ -415,12 +412,9 @@ Valiant           0.3989423
 
 Interpretation:
 
-\begin{itemize}
-\item
-  phat = 0.5 → model is completely uncertain
-\item
-  qhat ≈ 0.399 → maximum sensitivity to change
-\end{itemize}
+- phat \(\approx\) 0.5 - model is completely uncertain
+
+- qhat \(\approx\) 0.399 - maximum sensitivity to change
 
 \#New Slide
 \end{block}
@@ -475,19 +469,15 @@ Valiant           -0.7978846
 mpg         -6.941596
 \end{verbatim}
 
-Ratio ≈ 1.596 → model is responsive to errors
+Ratio \(\approx\) 1.596 - model is responsive to errors
 
-Positive Score → model underpredicts (needs to increase probability)
+Positive Score - model underpredicts (needs to increase probability)
 
-Negative Score → model overpredicts (needs to decrease
+Negative Score - model overpredicts (needs to decrease
 probability)Interpretation:
 
-\begin{itemize}
-\tightlist
-\item
-  Beta0 gradient: -4.787307 → overall adjustment to baseline i.e.~model
-  less likely to be manual (1)
-\end{itemize}
+- Beta0 gradient: -4.787307 - overall adjustment to baseline i.e.~model
+less likely to be manual (1)
 
 \#New Slide
 \end{block}
@@ -525,10 +515,10 @@ Valiant           0.6366198
 mpg          -409.28285 -8939.6122
 \end{verbatim}
 
-Weight Interpretation: All weights equal → every observation equally
+Weight Interpretation: All weights equal - every observation equally
 important at start
 
-Hessian Interpretation: - Large magnitude values → strong curvature →
+Hessian Interpretation: - Large magnitude values - strong curvature -
 mpg is influential
 
 \#New Slide
@@ -552,12 +542,9 @@ mpg          0.1244844
 
 Interpretation:
 
-\begin{itemize}
-\item
-  Beta0 is negative → baseline probability of manual is low
-\item
-  Beta1 is positive → higher mpg increases probability of manual
-\end{itemize}
+- Beta0 is negative - baseline probability of manual is low
+
+- Beta1 is positive - higher mpg increases probability of manual
 
 The computer is repeating the same update step over and over, each time
 improving the coefficients, until they stop changing.
@@ -632,17 +619,14 @@ mpg          0.1822605
  -3.9102065   0.1822684 
 \end{verbatim}
 
-\begin{itemize}
-\item
-  Intercept \textbf{(−3.91)} represents the baseline latent tendency for
-  a car to be manual when MPG is zero; it is strongly negative, meaning
-  the model starts from a situation where automatic transmission is much
-  more likely before considering MPG.
-\item
-  The MPG coefficient \textbf{(0.182)} means that each additional unit
-  of MPG increases the latent ``manual likelihood'' score, shifting the
-  probability toward a manual transmission.
-\end{itemize}
+- Intercept \textbf{(-3.91)} represents the baseline latent tendency for
+a car to be manual when MPG is zero; it is strongly negative, meaning
+the model starts from a situation where automatic transmission is much
+more likely before considering MPG.
+
+- The MPG coefficient \textbf{(0.182)} means that each additional unit
+of MPG increases the latent ``manual likelihood'' score, shifting the
+probability toward a manual transmission.
 
 \#New Slide
 
@@ -756,16 +740,13 @@ data:  table(df_clean$vote, df_clean$party_id)
 X-squared = 3694.5, df = 6, p-value < 2.2e-16
 \end{verbatim}
 
-\begin{itemize}
-\item
-  For education, the test statistic is very large \(X^2 = 3910.4\) with
-  a p-value effectively equal to zero. We can confidently reject the
-  idea that voting behavior is independent of education level.
-\item
-  For party identification, the chi-squared test \(X^2 = 3694.5\) also
-  produces a near-zero p-value, indicating a strong relationship between
-  party ID and turnout.
-\end{itemize}
+- For education, the test statistic is very large \(X^2 = 3910.4\) with
+a p-value effectively equal to zero. We can confidently reject the idea
+that voting behavior is independent of education level.
+
+- For party identification, the chi-squared test \(X^2 = 3694.5\) also
+produces a near-zero p-value, indicating a strong relationship between
+party ID and turnout.
 
 \#New Slide
 
@@ -783,16 +764,16 @@ Coefficients:
                        Estimate Std. Error z value Pr(>|z|)    
 (Intercept)          -1.2271752  0.0323903  -37.89   <2e-16 ***
 age                   0.0145019  0.0003513   41.28   <2e-16 ***
+educationSomeCollege -0.2651494  0.0191872  -13.82   <2e-16 ***
 educationHighSchool  -0.5935501  0.0171903  -34.53   <2e-16 ***
 educationLessHS      -0.8753739  0.0229323  -38.17   <2e-16 ***
-educationSomeCollege -0.2651494  0.0191872  -13.82   <2e-16 ***
 income                0.1417566  0.0047471   29.86   <2e-16 ***
 party_idIndLeanDem    0.3025451  0.0226679   13.35   <2e-16 ***
 party_idIndLeanRep    0.3480854  0.0235716   14.77   <2e-16 ***
-party_idStrongDem     0.6847337  0.0212788   32.18   <2e-16 ***
-party_idStrongRep     0.7786772  0.0244692   31.82   <2e-16 ***
 party_idWeakDem       0.3703462  0.0201312   18.40   <2e-16 ***
 party_idWeakRep       0.4335910  0.0221265   19.60   <2e-16 ***
+party_idStrongDem     0.6847337  0.0212788   32.18   <2e-16 ***
+party_idStrongRep     0.7786772  0.0244692   31.82   <2e-16 ***
 interest              0.4008260  0.0075930   52.79   <2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -886,7 +867,7 @@ predictors of turnout.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"anes\_timeseries\_cdf\_csv\_20260205.csv"}\NormalTok{, }\AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"anes\_cleaned.csv"}\NormalTok{, }\AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}\NormalTok{)}
 
 
 \NormalTok{vars }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"VCF0702"}\NormalTok{,  }\CommentTok{\# turnout}

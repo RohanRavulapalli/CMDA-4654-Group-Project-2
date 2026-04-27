@@ -1,0 +1,127 @@
+---
+title: "Probit Regression Function"
+author: "Elliot Hipski, Rohan, Brandon, Arnav"
+date: "April 2026"
+output:
+  beamer_presentation: default
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+subtitle: Applications in Government & Politics
+header-includes:
+   - |
+     \setbeamertemplate{footline}{
+       \hfill
+       \usebeamerfont{page number in head/foot}
+       \insertframenumber\,/\,\inserttotalframenumber\kern1em\vskip2pt
+     }
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+if (!require(margins)) install.packages("margins")
+library(margins)
+```
+
+# Step 1: Linear Predictor
+
+$$
+\eta_i = x_i^\top \beta
+$$
+
+```{r, eval = FALSE}
+eta <- X %*% beta
+```
+
+The linear predictor is passed through a standard normal CDF to convert it to a probability
+
+# Step 2: Linear Predictor –\> Probability
+
+$$
+\hat{p}_i = \Phi(\eta_i) \quad \text{and} \quad \hat{q}_i = \phi(\eta_i)
+$$
+
+```{r, eval = FALSE}
+phat <- pnorm(eta)
+qhat <- dnorm(eta)
+```
+
+Using the linear predictor, $\hat{p}_i = \Phi(\eta_i)$ converts it into a probability between 0 and 1 for $Y_i = 1$, while $\hat{q}_i = \phi(\eta_i)$ indicates the rate of change of that probability with respect to the linear predictor at that point.
+
+# Step 3: Score Vector
+
+$$
+s(\beta) = \sum_{i=1}^{N} \frac{\phi(x_i^\top \beta)}{\Phi(x_i^\top \beta)\left(1 - \Phi(x_i^\top \beta)\right)} \left(y_i - \Phi(x_i^\top \beta)\right) x_i
+$$
+
+$$
+\frac{\phi(\eta_i)}{\Phi(\eta_i)\big(1 - \Phi(\eta_i)\big)}
+\times (y_i - \Phi(\eta_i))
+\times x_{ij}
+$$
+
+The score function tells us in which direction should the coefficients $\beta$ to increase the probability of observing the data (dependent variable) given the parameters (independent variables).
+
+```{r, eval = FALSE}
+ratio <- qhat / (phat * (1 - phat))
+score <- (y - phat) * ratio
+g     <- t(X) %*% score
+```
+
+# The Score Vector
+
+The score function has three components.
+
+**Ratio:** tells us how sensitive the model is at that point $\eta_i = x_i^\top \beta$. At the start of the estimation, the coefficients $\beta$ are initialized to 0. At this point, the predicted probability of all events is 0.5, meaning the model adjusts to errors and is positioned to learn.
+
+**Residual:** compares what actually happened $y_i$ = 0 or 1 with the predicted probability. If it is positive, the model predicted too low. If it is negative, the model predicted too high.
+
+**Gradient:** tells the model both the **direction** (increase or decrease a coefficient) and the **magnitude** of adjustment needed so that predicted probabilities better align with the observed data.
+
+$$
+\eta_i = x_i^\top \beta
+$$
+
+$$
+\frac{\partial \eta_i}{\partial \beta_j} = x_{ij}
+$$
+
+# Step 4: Hessian
+
+The weights tell the model to focus on observations that are hardest to classify (those with predicted probabilities near 0.5 ex. initialization), and the Hessian uses this information to determine how large a step to take when updating the coefficients.
+
+$$
+\mathbf{H} = -\mathbf{X}^\top \mathbf{W} \mathbf{X}
+$$
+
+$$
+w_i = \frac{\phi(\eta_i)^2}{\Phi(\eta_i)(1 - \Phi(\eta_i))}
+$$
+
+```{r, eval = FALSE}
+w <- (qhat^2) / (phat * (1 - phat))
+H <- -t(X) %*% (X * as.vector(w))
+```
+
+# Step 5: Newton-Raphson Update
+
+$$
+\theta_{new} = \theta_{old} - [\text{Hessian}]^{-1} \times [\text{Gradient}]
+$$
+
+$$
+\beta^{(t+1)} = \beta^{(t)} - \mathbf{H}(\beta^{(t)})^{-1} s(\beta^{(t)})
+$$
+
+The algorithm looks at three things:
+
+1.  Where it is now $\beta^{(t)}$
+2.  Which direction improves the model? **The gradient**
+3.  How aggressive the move in the direction should be? **The Hessian**
+
+The new coefficients represent the difference between the previous coefficients and the new curvature adjusted step.
+
+```{r, eval = FALSE}
+beta <- beta - solve(H, g)
+```
+
+The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
