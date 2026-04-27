@@ -342,6 +342,9 @@ If we add weight to the model, the MPG coefficient captures its effect on transm
 
 We used a dataset provided by the American National Election Studies, detailing whether individuals voted or not in the 2024 election. The dataset had over 44 variables it considered, such as occupation and religion.
 
+**Data:** [ANES Cleaned Dataset]
+(https://drive.google.com/file/d/1wVwSJbUeV3JDm4IPhVh4POjd9VeOQ_-A/view?usp=sharing)
+
 # Clean Data Explanation {.shrink}
 
 Translating information from the codebook, we considered the variables below.
