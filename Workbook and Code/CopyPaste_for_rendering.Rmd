@@ -17,111 +17,117 @@ header-includes:
      }
 ---
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-if (!require(margins)) install.packages("margins")
+
+# Government/Politics Dataset | Implementation {.shrink}
+
+**Research question**: to what extent do socioeconomic factors, specifically age, education, and income, predict voter turnout in American national elections?
+
+We used a dataset provided by the American National Election Studies, detailing whether individuals voted or not in the 2024 election. The dataset had over 44 variables it considered, such as occupation and religion.
+
+# Clean Data Explanation {.shrink}
+
+Translating information from the codebook, we considered the variables below.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 library(margins)
+knitr::include_graphics("../img/DataTable.jpg")
 ```
 
-# Step 1: Linear Predictor
+VCF0009z, considers if a survey accidentally talks to too many men and not enough women, the women’s answers are given a higher weight (they count for more than one person) and the men’s answers are given a lower weight (they count for less than one person).
 
-$$
-\eta_i = x_i^\top \beta
-$$
+We cleaned the dataset to only use the variables above
 
-```{r, eval = FALSE}
-eta <- X %*% beta
+```{r, echo=FALSE}
+df <- read.csv("../anes_cleaned.csv", stringsAsFactors = FALSE)
+
+
+vars <- c("VCF0702",  # turnout
+          "VCF0101",  # age
+          "VCF0110",  # education
+          "VCF0114",  # income
+          "VCF0301",  # party ID
+          "VCF0310",  # political interest
+          "VCF0009z") # weights
+
+df_clean <- df[, vars]
+
+df_clean[df_clean < 0] <- NA
+
+# Dependent Variable: Turnout (1 = voted, 0 = did not vote)
+df_clean$vote <- ifelse(df_clean$VCF0702 == 2, 1,
+                  ifelse(df_clean$VCF0702 == 1, 0, NA))
+
+df_clean$age <- as.numeric(df_clean$VCF0101)
+
+df_clean$education <- factor(df_clean$VCF0110,
+                            levels = c(4,3,2,1),
+                            labels = c("CollegePlus", "SomeCollege", "HighSchool", "LessHS"))
+
+df_clean$income <- as.numeric(df_clean$VCF0114)
+
+df_clean$party_id <- factor(df_clean$VCF0301,
+                           levels = c(4,3,5,2,6,1,7),
+                           labels = c("Independent",
+                                      "IndLeanDem",
+                                      "IndLeanRep",
+                                      "WeakDem",
+                                      "WeakRep",
+                                      "StrongDem",
+                                      "StrongRep"))
+
+df_clean$interest <- as.numeric(df_clean$VCF0310)
+
+df_clean$weight <- df_clean$VCF0009z
+
+
+df_clean <- na.omit(df_clean)
 ```
 
-The linear predictor is passed through a standard normal CDF to convert it to a probability
+# Topic 4 | Implementation {.shrink}
 
-# Step 2: Linear Predictor –\> Probability
+## Exploratory Data Analysis
 
-$$
-\hat{p}_i = \Phi(\eta_i) \quad \text{and} \quad \hat{q}_i = \phi(\eta_i)
-$$
+```{r, comment=""}
+chisq.test(table(df_clean$vote, df_clean$education))
 
-```{r, eval = FALSE}
-phat <- pnorm(eta)
-qhat <- dnorm(eta)
+chisq.test(table(df_clean$vote, df_clean$party_id))
 ```
 
-Using the linear predictor, $\hat{p}_i = \Phi(\eta_i)$ converts it into a probability between 0 and 1 for $Y_i = 1$, while $\hat{q}_i = \phi(\eta_i)$ indicates the rate of change of that probability with respect to the linear predictor at that point.
+\- For education, the test statistic is very large $X^2 = 3910.4$ with a p-value effectively equal to zero. We can confidently reject the idea that voting behavior is independent of education level.
 
-# Step 3: Score Vector
+\- For party identification, the chi-squared test $X^2 = 3694.5$ also produces a near-zero p-value, indicating a strong relationship between party ID and turnout.
 
-$$
-s(\beta) = \sum_{i=1}^{N} \frac{\phi(x_i^\top \beta)}{\Phi(x_i^\top \beta)\left(1 - \Phi(x_i^\top \beta)\right)} \left(y_i - \Phi(x_i^\top \beta)\right) x_i
-$$
+# Topic 4 | Implementation {.shrink}
 
-$$
-\frac{\phi(\eta_i)}{\Phi(\eta_i)\big(1 - \Phi(\eta_i)\big)}
-\times (y_i - \Phi(\eta_i))
-\times x_{ij}
-$$
+```{r, comment="", echo=FALSE}
+model1 <- glm(vote ~ age + education + income + party_id + interest,
+              data = df_clean,
+              weights = weight,
+              family = binomial(link = "probit"))
 
-The score function tells us in which direction should the coefficients $\beta$ to increase the probability of observing the data (dependent variable) given the parameters (independent variables).
-
-```{r, eval = FALSE}
-ratio <- qhat / (phat * (1 - phat))
-score <- (y - phat) * ratio
-g     <- t(X) %*% score
+summary(model1)
 ```
 
-# The Score Vector
+Latent scores.
 
-The score function has three components.
+# Research Conclusion {.shrink}
 
-**Ratio:** tells us how sensitive the model is at that point $\eta_i = x_i^\top \beta$. At the start of the estimation, the coefficients $\beta$ are initialized to 0. At this point, the predicted probability of all events is 0.5, meaning the model adjusts to errors and is positioned to learn.
-
-**Residual:** compares what actually happened $y_i$ = 0 or 1 with the predicted probability. If it is positive, the model predicted too low. If it is negative, the model predicted too high.
-
-**Gradient:** tells the model both the **direction** (increase or decrease a coefficient) and the **magnitude** of adjustment needed so that predicted probabilities better align with the observed data.
-
-$$
-\eta_i = x_i^\top \beta
-$$
-
-$$
-\frac{\partial \eta_i}{\partial \beta_j} = x_{ij}
-$$
-
-# Step 4: Hessian
-
-The weights tell the model to focus on observations that are hardest to classify (those with predicted probabilities near 0.5 ex. initialization), and the Hessian uses this information to determine how large a step to take when updating the coefficients.
-
-$$
-\mathbf{H} = -\mathbf{X}^\top \mathbf{W} \mathbf{X}
-$$
-
-$$
-w_i = \frac{\phi(\eta_i)^2}{\Phi(\eta_i)(1 - \Phi(\eta_i))}
-$$
-
-```{r, eval = FALSE}
-w <- (qhat^2) / (phat * (1 - phat))
-H <- -t(X) %*% (X * as.vector(w))
+```{r, comment=""}
+mfx <- margins(model1)
+summary(mfx)
 ```
 
-# Step 5: Newton-Raphson Update
+# Research Conclusion {.shrink}
 
-$$
-\theta_{new} = \theta_{old} - [\text{Hessian}]^{-1} \times [\text{Gradient}]
-$$
+The average marginal effect (AME) of 0.0039 means that each additional year of age increases the probability of voting by about **0.4 percentage points**, holding other factors constant. This suggests that older individuals are more likely to vote.
 
-$$
-\beta^{(t+1)} = \beta^{(t)} - \mathbf{H}(\beta^{(t)})^{-1} s(\beta^{(t)})
-$$
+Compared to individuals with a college degree (the baseline group), those with lower levels of education are significantly less likely to vote. For example, having only a high school education decreases the probability of voting by about **15.5 percentage points**
 
-The algorithm looks at three things:
+The AME of 0.0381 shows that moving up one income category increases the probability of voting by about **3.8 percentage points**.
 
-1.  Where it is now $\beta^{(t)}$
-2.  Which direction improves the model? **The gradient**
-3.  How aggressive the move in the direction should be? **The Hessian**
+Compared to independents, individuals who identify with a political party, especially strong partisans, are substantially more likely to vote. For example, strong Democrats and strong Republicans are about **20–22 percentage points more likely** to vote than independents.
 
-The new coefficients represent the difference between the previous coefficients and the new curvature adjusted step.
+Similarly, **political interest** has one of the largest effects in the model. The average marginal effect of 0.1076 indicates that moving up one level of interest increases the probability of voting by about **10.8 percentage points**.
 
-```{r, eval = FALSE}
-beta <- beta - solve(H, g)
-```
+Overall, while socioeconomic resources are important, these results show that political engagement and partisan identity are equally powerful predictors of turnout.
 
-The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
