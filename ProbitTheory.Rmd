@@ -170,7 +170,7 @@ eta <- X %*% beta
 print(head(eta))
 ```
 
-All values = 0 → model has no information yet
+All values = 0 - model has no information yet
 
 #New Slide
 
@@ -186,9 +186,15 @@ print(head(qhat))
 
 Interpretation:
 
+<<<<<<< HEAD
 - phat = 0.5 → model is completely uncertain
 
 - qhat ≈ 0.399 → maximum sensitivity to change
+=======
+\- phat = 0.5 - model is completely uncertain
+
+\- qhat ≈ 0.399 - maximum sensitivity to change
+>>>>>>> f6c72341cdaf36fb306556cffa5dd89f9c93e583
 
 #New Slide
 
@@ -205,13 +211,17 @@ print(head(score))
 print(g)
 ```
 
-Ratio ≈ 1.596 → model is responsive to errors
+Ratio ≈ 1.596 - model is responsive to errors
 
-Positive Score → model underpredicts (needs to increase probability)
+Positive Score - model underpredicts (needs to increase probability)
 
-Negative Score → model overpredicts (needs to decrease probability)Interpretation:
+Negative Score - model overpredicts (needs to decrease probability)Interpretation:
 
+<<<<<<< HEAD
 - Beta0 gradient: -4.787307 → overall adjustment to baseline i.e. model less likely to be manual (1)
+=======
+\- Beta0 gradient: -4.787307 - overall adjustment to baseline i.e. model less likely to be manual (1)
+>>>>>>> f6c72341cdaf36fb306556cffa5dd89f9c93e583
 
 #New Slide
 
@@ -226,9 +236,9 @@ print(head(w))
 print(H)
 ```
 
-Weight Interpretation: All weights equal → every observation equally important at start
+Weight Interpretation: All weights equal - every observation equally important at start
 
-Hessian Interpretation: - Large magnitude values → strong curvature → mpg is influential
+Hessian Interpretation: - Large magnitude values - strong curvature - mpg is influential
 
 #New Slide
 
@@ -242,9 +252,15 @@ print(beta_new)
 
 Interpretation:
 
+<<<<<<< HEAD
 - Beta0 is negative → baseline probability of manual is low
 
 - Beta1 is positive → higher mpg increases probability of manual
+=======
+\- Beta0 is negative - baseline probability of manual is low
+
+\- Beta1 is positive - higher mpg increases probability of manual
+>>>>>>> f6c72341cdaf36fb306556cffa5dd89f9c93e583
 
 The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
 
@@ -369,8 +385,13 @@ Translating information from the codebook, we considered the variables below.
 
 We cleaned the dataset to only use the variables above
 
+<<<<<<< HEAD
 ```{r, echo=FALSE, eval=FALSE}
 df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+=======
+```{r, echo=FALSE}
+df <- read.csv("anes_cleaned.csv", stringsAsFactors = FALSE)
+>>>>>>> f6c72341cdaf36fb306556cffa5dd89f9c93e583
 
 
 vars <- c("VCF0702",  # turnout
@@ -485,8 +506,13 @@ plot(mtcars$mpg, mtcars$am,
 lines(mpg_seq, pred_prob, lwd = 2)
 ```
 
+<<<<<<< HEAD
 ```{r, eval=TRUE, eval=FALSE}
 df <- read.csv("anes_timeseries_cdf_csv_20260205.csv", stringsAsFactors = FALSE)
+=======
+```{r, eval=FALSE}
+df <- read.csv("anes_cleaned.csv", stringsAsFactors = FALSE)
+>>>>>>> f6c72341cdaf36fb306556cffa5dd89f9c93e583
 
 
 vars <- c("VCF0702",  # turnout

@@ -25,6 +25,19 @@ header-includes:
 4. Comparison to Other Models
 5. Citations and Appendix
 
+# Genesis of Probit Regression in Politics
+
+## From Science to Government 
+* **James Tobin (1918–2002)**
+    * Popularized Probit in Gov/Economics.
+    * Served on JFK’s Council of Economic Advisers (1961–1962).
+    * Won Nobel Prize for financial market analysis and their relations to expenditure decisions, employment, production, and prices.
+* **Key Innovations**
+    * Popularized **Maximum Likelihood Estimation (MLE)**.
+    * Formulated **Latent Variable Theory**: $Y^* = X\beta + \epsilon$.
+* **The 1958 Landmark Paper**
+    * *"Estimation of Relationships for Limited Dependent Variables"*
+
 # Topic 1 | Prerequisite Knowledge
 
 ## Bernoulli Distribution Variance
@@ -890,7 +903,9 @@ The probit model is considerably better at identifying deaths (specificity = 0.9
 ## Citations
 
 1. **Abbott, M. G.** (n.d.). *ECON 452 Note 15: Marginal Effects in Probit Models*. Queen's University. [https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf](https://econ.queensu.ca/faculty/abbott/econ452/452note15.pdf)
+
 2. **Friedman, J., Hastie, T., & Tibshirani, R.** (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. *Journal of Statistical Software*, 33(1). [https://glmnet.stanford.edu](https://glmnet.stanford.edu)
+
 3. **Hanck, C., Arnold, M., Gerber, A., & Schmelzer, M.** (2020). *11.2 Probit and Logit Regression*. Introduction to Econometrics with R. [https://www.econometrics-with-r.org/11.2-palr.html](https://www.econometrics-with-r.org/11.2-palr.html
 
 4. **Lucero, C.** (2026). *Lecture 16: Classification & Generalized Linear Models*. CMDA 4654, Virginia Tech.
@@ -903,17 +918,19 @@ The probit model is considerably better at identifying deaths (specificity = 0.9
 
 7. **Taboga, M.** (2021). *Probit classification model - Maximum likelihood*. Lectures on Probability Theory and Mathematical Statistics. [https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood](https://www.statlect.com/fundamentals-of-statistics/probit-model-maximum-likelihood)
 
-8. **Urban Institute.** (n.d.). *Logit and Probit Regression*. [https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression](https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression)
+8. **Tobin, J.** (1958). Estimation of Relationships for Limited Dependent Variables. Eli Scholar, [https://elischolar.library.yale.edu/cowles-discussion-paper-series/220/](yale.edu)
 
-9. **Wikimedia Commons.** (2021). *File:Hokkaido.parliamentary.svg*. [https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg](https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg)
+10. **Urban Institute.** (n.d.). *Logit and Probit Regression*. [https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression](https://www.urban.org/research/data-methods/data-analysis/quantitative-data-analysis/impact-analysis/regression-techniques/logit-and-probit-regression)
 
-10. **Wikipedia contributors.** (2024). *Logistic regression*. Wikipedia, The Free Encyclopedia. [https://en.wikipedia.org/wiki/Logistic_regression](https://en.wikipedia.org/wiki/Logistic_regression)
+11. **Wikimedia Commons.** (2021). *File:Hokkaido.parliamentary.svg*. [https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg](https://commons.wikimedia.org/wiki/File:Hokkaido.parliamentary.svg)
 
 # References {.shrink}
 
-11. **Xie, Y.** (2024). *Xaringan: Presentation Ninja* [R package]. [https://github.com/yihui/xaringan](https://github.com/yihui/xaringan)
+12. **Wikipedia contributors.** (2024). *Logistic regression*. Wikipedia, The Free Encyclopedia. [https://en.wikipedia.org/wiki/Logistic_regression](https://en.wikipedia.org/wiki/Logistic_regression)
 
-12. **Yanai, Y.** (n.d.). *Logit and Probit Models*. Research Methods 1. [https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
+13. **Xie, Y.** (2024). *Xaringan: Presentation Ninja* [R package]. [https://github.com/yihui/xaringan](https://github.com/yihui/xaringan)
+
+14. **Yanai, Y.** (n.d.). *Logit and Probit Models*. Research Methods 1. [https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html](https://yukiyanai.github.io/teaching/rm1/contents/R/logit-n-probit.html)
 
 ## Packages
 
