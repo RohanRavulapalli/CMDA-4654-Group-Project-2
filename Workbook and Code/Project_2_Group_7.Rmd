@@ -19,13 +19,14 @@ header-includes:
 
 ## Table of Contents
 
-1. Prerequisite Knowledge
-2. Theoretical and Mathematic Explanation
-3. Implementation
-4. Comparison to Other Models
-5. Citations and Appendix
+1. History
+2. Prerequisite Knowledge
+3. Theoretical and Mathematic Explanation
+4. Implementation
+5. Comparison to Other Models
+6. Citations and Appendix
 
-# Genesis of Probit Regression in Politics
+# Topic 1 | History
 
 ## From Science to Government 
 * **James Tobin (1918–2002)**
@@ -38,7 +39,7 @@ header-includes:
 * **The 1958 Landmark Paper**
     * *"Estimation of Relationships for Limited Dependent Variables"*
 
-# Topic 1 | Prerequisite Knowledge
+# Topic 2 | Prerequisite Knowledge
 
 ## Bernoulli Distribution Variance
 Used for modeling binary outcomes. The variance is defined as $\text{Var}(X) = E[X^2] - (E[X])^2 = p - p^2 = p(1 - p)$ 
@@ -46,7 +47,7 @@ Used for modeling binary outcomes. The variance is defined as $\text{Var}(X) = E
 ## General Linearized Model
 A *General Linearized Model* (GLM) is a model that applies a linear function to a dataset, with the general rules of mapping the input to the output y, and mapping it according to a **Link Function**.
 
-# Topic 1 | Prerequisite Knowledge
+# Topic 2 | Prerequisite Knowledge
 
 ## Gradient
 A vector of partial derivatives.  It is used in mapping the log likelihood function of the linear model.  For this case, we use the weights as slopes and apply the transformation $X^T \cdot W$, where $W$ is the weights matrix. This is used in solving for the **Hessian**
@@ -55,7 +56,7 @@ A vector of partial derivatives.  It is used in mapping the log likelihood funct
 A matrix of 2nd order partial derivatives.  For this case, however, we take the negative Expected Value of the hessian, which simplifies the matrix math.  Using the previously defined weights matrix, a formula for solving the Expected Hessian becomes (2): 
 \[ X^T W X^T \]
 
-# Topic 1 | Prerequisite Knowledge
+# Topic 2 | Prerequisite Knowledge
 
 ## Link Function
 The link function is the name of the function that distinguishes what type of GLM a specific Linear Model is.  For the case of probit, the inverse of the CDF of the normal distribution is used as the link function (also known as the probit function).  For Logistic, the logit function is used, which is the inverse logistic function.  
@@ -64,7 +65,7 @@ The link function is the name of the function that distinguishes what type of GL
 - Probit: $\eta(\mu) = \Phi^{-1}(\mu)$
 
 
-# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
+# Topic 3 | Theoretical and Mathematic Explanation {.shrink}
 
 - **Assumptions**: 
     - Has all assumptions of a GLM, found in (4)
@@ -77,7 +78,7 @@ The link function is the name of the function that distinguishes what type of GL
     - verbose: used for debugging, prints the steps and beta values
     - *note* some of these inputs are handled by glm differently, like the design matrix $X$ is created by just adding a column of 1s to the dataframe passed in as x 
       
-# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
+# Topic 3 | Theoretical and Mathematic Explanation {.shrink}
 
 - **Function**:
   - initialize beta to be a vector of 0s, of length m (number of x columns)
@@ -92,17 +93,17 @@ The link function is the name of the function that distinguishes what type of GL
     - finally, a copy of the current beta iteration is made, and the next iteration of beta becomes $\hat B = \hat B - (H^{-1}g)$ where g is the gradient
     - then the tolerance check is done, checking the squared sum of $\hat B_{new} - \hat B_{old}$, or $||B_{new} - B_{old}||^2$ if this is less than our tolerance, we have converged
     
-# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
+# Topic 3 | Theoretical and Mathematic Explanation {.shrink}
 - **Usage**:
     - Probit has many uses, but most of them are in econometrics and Government.  The closest model in terms of use case is Logistic, as they both follow bernouli variables.  
     - The main difference from Logisitc regression is that logistic regression uses the logistic distribution
     - This makes it useful in studying things like human behavior, psychology, economics, and finance.
 
-# Topic 2 | Theoretical and Mathematic Explanation {.shrink}
+# Topic 3 | Theoretical and Mathematic Explanation {.shrink}
 
 
 
-# Topic 3 | Implementation {.shrink}
+# Topic 4 | Implementation {.shrink}
 
 ```{r echo=TRUE}
 myprobit = function(X, y, max_iter, tolerance, verbose=FALSE){
@@ -162,7 +163,7 @@ We used a method similar to Newton Raphson, but rather than use the Hessian, the
 
 ## Testing
 
-# Topic 4 | Comparison to Other Models
+# Topic 5 | Comparison to Other Models
 
 ```{r topic5-render-options, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(
