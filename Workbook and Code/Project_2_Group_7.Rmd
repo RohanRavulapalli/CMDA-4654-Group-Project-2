@@ -1316,6 +1316,8 @@ plot(mtcars$mpg, mtcars$am,
 lines(mpg_seq, pred_prob, lwd = 2)
 ```
 
-- Probit model 
-- Maximum Likelihood details
-- Convergence tolerance pseudocode logic
+# Data Links
+
+- **Google Drive Viewer**: https://drive.google.com/file/d/1wVwSJbUeV3JDm4IPhVh4POjd9VeOQ_-A/view
+
+- **Direct Download**: https://drive.usercontent.google.com/download?id=1wVwSJbUeV3JDm4IPhVh4POjd9VeOQ_-A&export=download&authuser=3
