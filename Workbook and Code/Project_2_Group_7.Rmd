@@ -100,7 +100,7 @@ The link function is the name of the function that distinguishes what type of GL
     - This makes it useful in studying things like human behavior, psychology, economics, and finance.
 
 # Topic 3 | Theoretical and Mathematic Explanation {.shrink}
-- we will now explore the exact implementation of Probit in greater detail and showing intermediate calculations for the various components
+- we will now explore the exact implementation of Probit in greater detail, showing intermediate calculations for the various components
 - There will be 5 main steps: 
   - Linear Predictor
   - linear predictor -\> Probability
