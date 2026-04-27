@@ -100,9 +100,13 @@ The link function is the name of the function that distinguishes what type of GL
     - This makes it useful in studying things like human behavior, psychology, economics, and finance.
 
 # Topic 3 | Theoretical and Mathematic Explanation {.shrink}
-
-# Arnav part
-
+- we will now explore the exact implementation of Probit in greater detail and showing intermediate calculations for the various components
+- There will be 5 main steps: 
+  - Linear Predictor
+  - linear predictor -\> Probability
+  - Score Vector
+  - Hessian
+  - Newton-Raphson Update
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 if (!require(margins)) install.packages("margins")
@@ -213,7 +217,9 @@ beta <- beta - solve(H, g)
 
 The computer is repeating the same update step over and over, each time improving the coefficients, until they stop changing.
 
+# Arnav part 2
 
+# Arnav part 3
 
 
 # Topic 4 | Implementation {.shrink}
